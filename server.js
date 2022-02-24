@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
 const Person = require('./models/Person');
+const path = require('path')
 
 const app = express();
 
@@ -9,6 +10,16 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({
     extended: true
 }));
+
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        data: {
+            name: 'learnchess',
+            version: '0.1.0'
+        }
+    })
+})
 
 app.get('/api', async (req, res) => {
     try {
@@ -38,9 +49,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://ryanh777:kaKashi%23Se
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static('client/build'));
+    app.get("*", (req, res) => {
+        res.sendFile(path.resolve(__dirname, "build", "index.html"))
+    })
 }
 
 
-const PORT = process.end.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => console.log('Server started on port', PORT))
