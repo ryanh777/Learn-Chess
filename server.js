@@ -3,8 +3,11 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
 const Person = require('./models/Person');
 const path = require('path')
+require('dotenv/config')
 
 const app = express();
+
+const PORT = process.env.PORT || 5000;
 
 app.use(bodyParser.json());
 app.use(express.urlencoded({
@@ -23,7 +26,7 @@ app.get('/', (req, res) => {
 
 app.get('/api', async (req, res) => {
     try {
-        const  people = await Person.find();
+        const people = await Person.find();
         res.json(people);
     } catch (err) {
         res.json(err);
@@ -31,7 +34,6 @@ app.get('/api', async (req, res) => {
 });
 
 app.post('/api', async (req, res) => {
-    console.log("here")
     const post = new Person({
         firstName: req.body.firstName,
         lastName: req.body.lastName
@@ -45,16 +47,13 @@ app.post('/api', async (req, res) => {
     }
 });
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://ryanh777:kaKashi%23Sensei7@chess-test.kcunz.mongodb.net/Chess-Test?retryWrites=true&w=majority')
+mongoose.connect(process.env.MONGODB_URI || process.env.DB_CONNECTION)
 
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static('client/build'));
+    app.use(express.static(path.join(__dirname, 'client/build')));
     app.get("*", (req, res) => {
-        res.sendFile(path.resolve(__dirname, "build", "index.html"))
+        res.sendFile(path.join(__dirname, "client/build", "index.html"))
     })
 }
-
-
-const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => console.log('Server started on port', PORT))
