@@ -8,9 +8,7 @@
     "server": "nodemon server.js",
     "client": "cd client && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "build-script": "cd client && npm run build",
-    "install-client": "cd client && npm install",
-    "heroku-postbuild": "npm run install-client && npm run build-script"
+    "heroku-postbuild": "cd client && npm install && npm run build"
   },
   "author": "Ryan Humphrey",
   "license": "ISC",
@@ -25,5 +23,7 @@
   "devDependencies": {
     "nodemon": "^2.0.15"
   },
-  "proxy": "http://localhost:5000"
+  "engines": {
+    "node": "16.13.2"
+  }
 }
