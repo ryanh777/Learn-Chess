@@ -19,8 +19,6 @@ app.use('/api', require('./routes/api'))
 // Connect to database
 mongoose.connect(process.env.MONGODB_URI || process.env.DB_CONNECTION)
 
-console.log("NODE_ENV:", process.env.NODE_ENV)
-
 // Serves the client build folder to server
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'client/build')));
