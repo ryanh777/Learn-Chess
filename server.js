@@ -14,7 +14,6 @@ app.use(express.urlencoded({
 }));
 
 // Routes
-// app.use('/', require('./routes/index'))
 app.use('/api', require('./routes/api'))
 
 // Connect to database
