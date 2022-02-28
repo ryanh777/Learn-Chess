@@ -1,0 +1,9 @@
+/* TODO */
+#chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 80vh;
+    height: 80vh;
+    background-color: blue;
+}

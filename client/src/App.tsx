@@ -1,11 +1,13 @@
 import React from 'react';
 import './App.css';
-import People from './people/people';
+import Chessboard from './components/chessboard/chessboard';
 
 function App() {
+  // const board: JSX.Element[] = [];
   return (
-    <div className="App">
-      <People/>
+    <div className="app">
+      <Chessboard/>
+      {/* yurrrrr */}
     </div>
   );
 }
