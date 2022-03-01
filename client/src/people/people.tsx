@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './people.css';
 
 interface Props {
     id?: number,
