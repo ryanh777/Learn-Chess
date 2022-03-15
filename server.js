@@ -14,7 +14,9 @@ app.use(express.urlencoded({
 }));
 
 // Routes
-app.use('/api', require('./routes/api'))
+app.use('/api', require('./routes/personAPI'))
+app.use('/user', require('./routes/user'))
+app.use('/test', require('./routes/test'))
 
 // Connect to database
 mongoose.connect(process.env.MONGODB_URI || process.env.DB_CONNECTION)
