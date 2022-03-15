@@ -36,7 +36,12 @@ export interface Piece {
 
 export interface MoveNode {
   move: number;
-  children: MoveNode[];
+  nextMove: [MoveNode];
+}
+
+export interface User {
+  username: string,
+  moveList: number[][][]
 }
 
 export const initialBoardState: Piece[] = [

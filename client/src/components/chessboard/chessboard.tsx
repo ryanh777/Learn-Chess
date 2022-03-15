@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Tile from "../tile/tile";
 import Referee from "../../referee/Referee";
 import "./chessboard.css"
@@ -12,17 +12,41 @@ import {
     initialBoardState,
     Position,
     samePosition,
-  } from "../../Constants";
+    User,
+  } from "../../constants";
 
 export default function Chessboard() {
   const [activePiece, setActivePiece] = useState<HTMLElement | null>(null);
   const [promotionPawn, setPromotionPawn] = useState<Piece>();
   const [grabPosition, setGrabPosition] = useState<Position>({ x: -1, y: -1 });
+  const [learnState, setLearnState] = useState<Boolean>(false);
+  const [user, setUser] = useState<User>()
+  let [moveList, setMoveList] = useState<number[][]>([]);
   const [pieces, setPieces] = useState<Piece[]>(JSON.parse(JSON.stringify(initialBoardState)));
+  let [index, setIndex] = useState<number>(1);
+  const [learningArray, setLearningArray] = useState<number[][]>([]); 
   const [modeButtonText, setModeButtonText] = useState<String>("learn");
   const chessboardRef = useRef<HTMLDivElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
   const referee = new Referee();
+
+  useEffect(() => {
+    console.log("useeffect")
+    const token = localStorage.getItem('token')
+    if (token) {
+      console.log("token:", token)
+      fetch('/user', {
+        method: 'GET',
+        headers: {
+          'auth-token': `${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(user => {
+        setUser(user)
+      })
+    }
+  }, [])
 
   function grabPiece(e: React.MouseEvent) {
     const element = e.target as HTMLElement;
@@ -140,7 +164,7 @@ export default function Chessboard() {
             return results;
           }, [] as Piece[]);
 
-          // moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
+          moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
           setPieces(updatedPieces);
 
         } else if (validMove) {
@@ -176,15 +200,15 @@ export default function Chessboard() {
           // if (modeButtonText === "enter lines") {
           //   setPieceMovedFlag(true);
           // }
-          // if (learnState) {
-          //   moveOpponentPiece();
-          // } else {
-          //   moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
-          // }
-          // const textDiv = document.getElementById('text');
-          // if (textDiv) {
-          //   textDiv.textContent = "Piece moved from x: " + initialPosition.x + " y: " + initialPosition.y + " to x: " + finalPosition.x + " y: " + finalPosition.y;
-          // }
+          if (learnState) {
+            moveOpponentPiece();
+          } else {
+            moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
+          }
+          const textDiv = document.getElementById('text');
+          if (textDiv) {
+            textDiv.textContent = "Piece moved from x: " + initialPosition.x + " y: " + initialPosition.y + " to x: " + finalPosition.x + " y: " + finalPosition.y;
+          }
           setPieces(updatedPieces);
         } else {
           console.log("why")
@@ -198,18 +222,126 @@ export default function Chessboard() {
     }
   }
 
-  function saveButtonClicked() {    
-    console.log("save button clicked")
+  function saveButtonClicked() { 
+    console.log("user:", user) 
+    if (user) {
+      let newMovelist: number[][][] = user?.moveList;
+      newMovelist.push(moveList)
+      console.log("movelist:", newMovelist)
+      const moves = {
+        moveList: newMovelist
+      }
+      const username = user.username
+      const token = localStorage.getItem('token')
+      fetch(`/user/${username}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': `${token}`
+        },
+        body: JSON.stringify(moves),
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Data:', data);
+      })
+    } 
   }
 
   function switchModes() {
-    console.log("switching modes..")
+    if (learnState === false) {
+      setLearnState(true)
+      setModeButtonText('enter lines')
+      resetLearningArray()
+    } else {
+      setLearnState(false)
+      setModeButtonText('learn')
+      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
+    }
+  }
+
+  function moveOpponentPiece() {
+    console.log(learningArray)
+    if (learningArray.length > index) {
+      const move = learningArray[index];
+      console.log("opponent moves from: " + move[0] + move[1] + " to " + move[2] + move[3])
+      movePiece({x: move[0], y: move[1]}, {x: move[2], y: move[3]})
+    } else {
+      console.log("completed the line")
+      resetLearningArray()
+      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
+    }
+    setIndex(index + 2)
+  }
+
+  function resetLearningArray() {
+    if (user) {
+      const learningMoveList = user?.moveList;
+      setIndex(1)
+      const randIndex = Math.floor(Math.random() * learningMoveList.length);
+      setLearningArray(learningMoveList[randIndex]);
+      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
+    }
+  }
+
+  function register() {
+    const username = (document.getElementById('username') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    if (username && password) {
+      const user = {
+        username: username,
+        password: password
+      }
+      fetch('/user/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Data:', data);
+      })
+    } else {
+      alert("Need both username and password")
+    }
+  }
+
+  function login() {
+    const username = (document.getElementById('username') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+    if (username && password) {
+      const user = {
+        username: username,
+        password: password
+      }
+      fetch('/user/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+      })
+      .then(res => {
+        res.text().then((data) => {
+          console.log("data:", data)
+          localStorage.setItem('token', data)
+        })
+        window.location.reload()
+      })
+    } else {
+      alert("Need both username and password")
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token')
+    window.location.reload()
   }
 
   function initializeBoard() {
-    console.log("initialized")
     let board = []
-    // let pieces: Piece[] = JSON.parse(JSON.stringify(initialBoardState))
 
     for (let j = VERTICAL_AXIS.length - 1; j >= 0; j--) {
       for (let i = 0; i < HORIZONTAL_AXIS.length; i++) {
@@ -225,8 +357,33 @@ export default function Chessboard() {
     return board;
   }
 
+  function userComponent() {
+    if (user) {
+      return (
+        <>
+          <div>
+            <div>{user.username} is logged in.</div>
+            <button id="logout" onClick={logout}>logout</button>
+          </div>
+        </>
+      )
+    } else {
+      return (
+        <>
+          <input id="username" type="text" placeholder="Username"></input>
+          <input id="password" type="text" placeholder="Password"></input>
+          <div>
+            <button id="register" onClick={register}>Register</button>
+            <button id="login" onClick={login}>Login</button>
+          </div>
+        </>
+      )
+    }
+  }
+
   return (
     <>
+      {userComponent()}
       <div 
         onMouseDown={(e) => grabPiece(e)}
         onMouseMove={(e) => dragPiece(e)}
@@ -243,7 +400,14 @@ export default function Chessboard() {
       <div id="text">
         Move a piece
       </div>
+      {/* <div>
+        <input id="username" type="text" placeholder="Username"></input>
+        <input id="password" type="text" placeholder="Password"></input>
+        <div>
+          <button id="register" onClick={register}>Register</button>
+          <button id="login" onClick={login}>Login</button>
+        </div>
+      </div> */}
     </>
   )
-    
 }
