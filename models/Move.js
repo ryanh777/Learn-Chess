@@ -1,11 +1,17 @@
+const number = require('@hapi/joi/lib/types/number');
 const mongoose = require('mongoose');
 
 const MoveSchema = mongoose.Schema({
-    moveName: {
+    move: {
         type: String,
         required: true
     },
-    children: this
+    parentID: {
+        type: String,
+        required: true
+    },
+    childIDs: [String],
+    childMoves: [String]
 });
 
 module.exports = mongoose.model('Move', MoveSchema); 

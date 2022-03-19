@@ -41,7 +41,7 @@ export interface MoveNode {
 
 export interface User {
   username: string,
-  moveList: number[][][]
+  rootID: string
 }
 
 export const initialBoardState: Piece[] = [

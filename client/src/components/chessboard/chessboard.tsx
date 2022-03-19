@@ -21,7 +21,7 @@ export default function Chessboard() {
   const [grabPosition, setGrabPosition] = useState<Position>({ x: -1, y: -1 });
   const [learnState, setLearnState] = useState<Boolean>(false);
   const [user, setUser] = useState<User>()
-  let [moveList, setMoveList] = useState<number[][]>([]);
+  let [moveList, setMoveList] = useState<string[]>([]);
   const [pieces, setPieces] = useState<Piece[]>(JSON.parse(JSON.stringify(initialBoardState)));
   let [index, setIndex] = useState<number>(1);
   const [learningArray, setLearningArray] = useState<number[][]>([]); 
@@ -31,10 +31,8 @@ export default function Chessboard() {
   const referee = new Referee();
 
   useEffect(() => {
-    console.log("useeffect")
     const token = localStorage.getItem('token')
     if (token) {
-      console.log("token:", token)
       fetch('/user', {
         method: 'GET',
         headers: {
@@ -137,37 +135,40 @@ export default function Chessboard() {
           pieces
         );
 
-        const isEnPassantMove = referee.isEnPassantMove(
-          initialPosition,
-          finalPosition,
-          currentPiece.type,
-          currentPiece.team,
-          pieces
-        );
+        // const isEnPassantMove = referee.isEnPassantMove(
+        //   initialPosition,
+        //   finalPosition,
+        //   currentPiece.type,
+        //   currentPiece.team,
+        //   pieces
+        // );
 
-        const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
+        // const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
 
-        if (isEnPassantMove) {
-          const updatedPieces = pieces.reduce((results, piece) => {
-            if (samePosition(piece.position, initialPosition)) {
-              piece.enPassant = false;
-              piece.position.x = finalPosition.x;
-              piece.position.y = finalPosition.y;
-              results.push(piece);
-            } else if (!samePosition(piece.position, { x: finalPosition.x, y: finalPosition.y - pawnDirection })) {
-                if (piece.type === PieceType.PAWN) {
-                  piece.enPassant = false;
-                }
-                results.push(piece);
-            }
+        // if (isEnPassantMove) {
+        //   const updatedPieces = pieces.reduce((results, piece) => {
+        //     if (samePosition(piece.position, initialPosition)) {
+        //       piece.enPassant = false;
+        //       piece.position.x = finalPosition.x;
+        //       piece.position.y = finalPosition.y;
+        //       results.push(piece);
+        //     } else if (!samePosition(piece.position, { x: finalPosition.x, y: finalPosition.y - pawnDirection })) {
+        //         if (piece.type === PieceType.PAWN) {
+        //           piece.enPassant = false;
+        //         }
+        //         results.push(piece);
+        //     }
 
-            return results;
-          }, [] as Piece[]);
+        //     return results;
+        //   }, [] as Piece[]);
 
-          moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
-          setPieces(updatedPieces);
+        //   moveList.push(initialPosition.x.toString()
+        //   .concat(initialPosition.y.toString(), finalPosition.x.toString(), finalPosition.y.toString()));
 
-        } else if (validMove) {
+        //   setPieces(updatedPieces);
+
+        // } else if (validMove) {
+        if (validMove) {
           //UPDATES THE PIECE POSITION
           //AND IF A PIECE IS ATTACKED, REMOVES IT
           const updatedPieces = pieces.reduce((results, piece) => {
@@ -203,7 +204,8 @@ export default function Chessboard() {
           if (learnState) {
             moveOpponentPiece();
           } else {
-            moveList.push([initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]);
+            const arr = [initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]
+            moveList.push(arr.join(""));
           }
           const textDiv = document.getElementById('text');
           if (textDiv) {
@@ -222,37 +224,37 @@ export default function Chessboard() {
     }
   }
 
-  function saveButtonClicked() { 
-    console.log("user:", user) 
-    if (user) {
-      let newMovelist: number[][][] = user?.moveList;
-      newMovelist.push(moveList)
-      console.log("movelist:", newMovelist)
-      const moves = {
-        moveList: newMovelist
-      }
-      const username = user.username
-      const token = localStorage.getItem('token')
-      fetch(`/user/${username}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'auth-token': `${token}`
-        },
-        body: JSON.stringify(moves),
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Data:', data);
-      })
-    } 
-  }
+  // function saveButtonClicked() { 
+  //   console.log("user:", user) 
+  //   if (user) {
+  //     let newMovelist: number[][][] = user?.moveList;
+  //     newMovelist.push(moveList)
+  //     console.log("movelist:", newMovelist)
+  //     const moves = {
+  //       moveList: newMovelist
+  //     }
+  //     const username = user.username
+  //     const token = localStorage.getItem('token')
+  //     fetch(`/user/${username}`, {
+  //       method: 'PATCH',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'auth-token': `${token}`
+  //       },
+  //       body: JSON.stringify(moves),
+  //     })
+  //     .then(res => res.json())
+  //     .then(data => {
+  //       console.log('Data:', data);
+  //     })
+  //   } 
+  // }
 
   function switchModes() {
     if (learnState === false) {
       setLearnState(true)
       setModeButtonText('enter lines')
-      resetLearningArray()
+      // resetLearningArray()
     } else {
       setLearnState(false)
       setModeButtonText('learn')
@@ -268,31 +270,47 @@ export default function Chessboard() {
       movePiece({x: move[0], y: move[1]}, {x: move[2], y: move[3]})
     } else {
       console.log("completed the line")
-      resetLearningArray()
+      // resetLearningArray()
       setPieces(JSON.parse(JSON.stringify(initialBoardState)));
     }
     setIndex(index + 2)
   }
 
-  function resetLearningArray() {
-    if (user) {
-      const learningMoveList = user?.moveList;
-      setIndex(1)
-      const randIndex = Math.floor(Math.random() * learningMoveList.length);
-      setLearningArray(learningMoveList[randIndex]);
-      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
-    }
-  }
+  // function resetLearningArray() {
+  //   if (user) {
+  //     const learningMoveList = user?.moveList;
+  //     setIndex(1)
+  //     const randIndex = Math.floor(Math.random() * learningMoveList.length);
+  //     setLearningArray(learningMoveList[randIndex]);
+  //     setPieces(JSON.parse(JSON.stringify(initialBoardState)));
+  //   }
+  // }
 
-  function register() {
+  async function register() {
     const username = (document.getElementById('username') as HTMLInputElement).value;
     const password = (document.getElementById('password') as HTMLInputElement).value;
     if (username && password) {
+      let rootID: string = ""
+      const root = {
+        move: "root",
+        parentID: "none"
+      }
+      await fetch('/data/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(root),
+      })
+      .then(res => res.json())
+      .then(data => rootID = data)
+
       const user = {
         username: username,
-        password: password
+        password: password,
+        rootID: rootID
       }
-      fetch('/user/register', {
+      await fetch('/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -338,6 +356,79 @@ export default function Chessboard() {
   function logout() {
     localStorage.removeItem('token')
     window.location.reload()
+  }
+
+  async function getChildren(id: string) {
+    let ids: [string] | [] = []
+    let moves: [string] | [] = []
+    await fetch(`/data/${id}`)
+    .then(res => res.json())
+    .then(data => {
+        ids = data.childIDs
+        moves = data.childMoves
+    })
+    return {ids: ids, moves: moves}
+  }
+
+  // Creates new child and attaches _id to parent's children array
+  async function createChild(parentID: string, move: string): Promise<string> {
+      const newChild = {
+          move: move,
+          parentID: parentID
+      }
+      let id = ""
+
+      await fetch('/data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newChild),
+      })
+      .then(res => res.json())
+      .then(data => id = data)
+
+      const childInfo = {
+          id: id,
+          move: move
+      }
+
+      await fetch(`/data/add/${parentID}`, {
+          method: 'PATCH',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(childInfo)
+      })
+      .then(res => res.json())
+      .then(data => console.log("data:", data))
+
+      return id;
+  }
+
+  async function saveButtonClicked() {
+    if (user) {
+      let id = user.rootID;
+      let childData: {ids: [], moves: []} = await getChildren(id)
+
+      console.log("childata:", childData)
+
+      for(let i = 0; i < moveList.length; i++) {        
+          let hasChildren = (childData.moves.length > 0) ? true : false
+          if (hasChildren) {
+              for (let j = 0; j < childData.moves.length; j++) {
+                  if (childData.moves[j] === moveList[i]) {
+                      id = childData.ids[j]
+                      childData = await getChildren(childData.ids[j])
+                      break
+                  }
+                  id = await createChild(id, moveList[i])
+              }
+          } else {
+              id = await createChild(id, moveList[i])
+          }
+      }   
+    }     
   }
 
   function initializeBoard() {

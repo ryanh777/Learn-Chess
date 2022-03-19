@@ -1,14 +1,16 @@
 const mongoose = require('mongoose');
 
 const PersonSchema = mongoose.Schema({
-    firstName: {
+    name: {
         type: String,
         required: true
     },
-    lastName: {
+    parentID: {
         type: String,
         required: true
-    }
-});
+    },
+    childID: [String],
+    childName: [String] 
+})
 
-module.exports = mongoose.model('Person', PersonSchema);
+module.exports = mongoose.model('Person', PersonSchema)

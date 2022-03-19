@@ -2,7 +2,7 @@ const express = require('express')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const User = require('../models/User');
-const userValidation = require('../validation')
+const { registerValidation, loginValidation } = require('../validation')
 const verify = require('./verifyToken')
 const router = express.Router();
 
@@ -17,7 +17,7 @@ router.get('/', verify, async (req, res) => {
 
 router.post('/register', async (req, res) => {
 
-    const { error } = userValidation(req.body)
+    const { error } = registerValidation(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
     const userExist = await User.findOne({username: req.body.username})
@@ -27,17 +27,18 @@ router.post('/register', async (req, res) => {
         const hashedPass = await bcrypt.hash(req.body.password, 10);
         const user = new User({
             username: req.body.username,
-            password: hashedPass
+            password: hashedPass,
+            rootID: req.body.rootID
         });
         const savedUser = await user.save();
-        res.send({ user: user._id });
+        res.send(savedUser);
     } catch (err) {
         res.status(400).send(err)
     }
 });
 
 router.post('/login', async (req, res) => {
-    const { error } = userValidation(req.body)
+    const { error } = loginValidation(req.body)
     if (error) return res.status(400).send(error.details[0].message)
 
     const user = await User.findOne({username: req.body.username})
@@ -50,7 +51,6 @@ router.post('/login', async (req, res) => {
     res.header('auth-token', token).send(token)
 });
 
-// TODO
 router.patch('/:username', verify, async (req, res) => {
     try {
         const updatedPost = await User.updateOne(
