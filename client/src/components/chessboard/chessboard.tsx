@@ -3,502 +3,526 @@ import Tile from "../tile/tile";
 import Referee from "../../referee/Referee";
 import "./chessboard.css"
 import {
-    VERTICAL_AXIS,
-    HORIZONTAL_AXIS,
-    TILE_SIZE,
-    Piece,
-    PieceType,
-    TeamType,
-    initialBoardState,
-    Position,
-    samePosition,
-    User,
-  } from "../../constants";
+	VERTICAL_AXIS,
+	HORIZONTAL_AXIS,
+	TILE_SIZE,
+	Piece,
+	PieceType,
+	TeamType,
+	whiteBoardState,
+	blackBoardState,
+	Position,
+	samePosition,
+	User,
+	ChildData
+} from "../../constants";
 
 export default function Chessboard() {
-  const [activePiece, setActivePiece] = useState<HTMLElement | null>(null);
-  const [promotionPawn, setPromotionPawn] = useState<Piece>();
-  const [grabPosition, setGrabPosition] = useState<Position>({ x: -1, y: -1 });
-  const [learnState, setLearnState] = useState<Boolean>(false);
-  const [user, setUser] = useState<User>()
-  let [moveList, setMoveList] = useState<string[]>([]);
-  const [pieces, setPieces] = useState<Piece[]>(JSON.parse(JSON.stringify(initialBoardState)));
-  let [index, setIndex] = useState<number>(1);
-  const [learningArray, setLearningArray] = useState<number[][]>([]); 
-  const [modeButtonText, setModeButtonText] = useState<String>("learn");
-  const chessboardRef = useRef<HTMLDivElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const referee = new Referee();
+	const [activePiece, setActivePiece] = useState<HTMLElement | null>(null)
+	const [promotionPawn, setPromotionPawn] = useState<Piece>()
+	const [grabPosition, setGrabPosition] = useState<Position>({ x: -1, y: -1 })
+	const [learnState, setLearnState] = useState<Boolean>(false)
+	const [user, setUser] = useState<User>()
+	let [moveList, setMoveList] = useState<string[]>([])
+	const [pieces, setPieces] = useState<Piece[]>(JSON.parse(JSON.stringify(whiteBoardState)))
+	const [userIsWhite, setUserIsWhite] = useState<boolean>(true)
+	const [currentMoveID, setCurrentMoveID] = useState<string>()
+	const [modeButtonText, setModeButtonText] = useState<String>("learn")
+	const chessboardRef = useRef<HTMLDivElement>(null)
+	const modalRef = useRef<HTMLDivElement>(null)
+	const referee = new Referee()
 
-  useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      fetch('/user', {
-        method: 'GET',
-        headers: {
-          'auth-token': `${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(user => {
-        setUser(user)
-      })
-    }
-  }, [])
+	useEffect(() => {
+		const token = localStorage.getItem('token')
+		if (token) {
+			fetch('/user', {
+				method: 'GET',
+				headers: {
+					'auth-token': `${token}`
+				}
+			})
+				.then(res => res.json())
+				.then(user => {
+					setUser(user)
+					setCurrentMoveID(user.whiteRootID)
+				})
+		}
+	}, [])
 
-  function grabPiece(e: React.MouseEvent) {
-    const element = e.target as HTMLElement;
-    const chessboard = chessboardRef.current;
-    if (element.classList.contains("chess-piece") && chessboard) {
-      const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / TILE_SIZE);
-      const grabY = Math.abs(
-        Math.ceil((e.clientY - chessboard.offsetTop - (TILE_SIZE*8)) / TILE_SIZE)
-      );
-      setGrabPosition({ x: grabX, y: grabY });
+	function grabPiece(e: React.MouseEvent) {
+		const element = e.target as HTMLElement;
+		const chessboard = chessboardRef.current;
+		if (element.classList.contains("chess-piece") && chessboard) {
+			const grabX = Math.floor((e.clientX - chessboard.offsetLeft) / TILE_SIZE);
+			const grabY = Math.abs(
+				Math.ceil((e.clientY - chessboard.offsetTop - (TILE_SIZE * 8)) / TILE_SIZE)
+			);
+			setGrabPosition({ x: grabX, y: grabY });
 
-      const x = e.clientX - TILE_SIZE / 2;
-      const y = e.clientY - TILE_SIZE / 2;
-      element.style.position = "absolute";
-      element.style.left = `${x}px`;
-      element.style.top = `${y}px`;
+			const x = e.clientX - TILE_SIZE / 2;
+			const y = e.clientY - TILE_SIZE / 2;
+			element.style.position = "absolute";
+			element.style.left = `${x}px`;
+			element.style.top = `${y}px`;
 
-      setActivePiece(element);
-    }
-  }
+			setActivePiece(element);
+		}
+	}
 
-  function dragPiece(e: React.MouseEvent) {
-    // console.log("x: " + e.clientX + " y: " + e.clientY)
-    const chessboard = chessboardRef.current;
-    // console.log("offsettop: " + chessboard?.offsetTop + "offsetleft: " + chessboard?.offsetLeft)
-    if (activePiece && chessboard) {
-      const minX = chessboard.offsetLeft - (TILE_SIZE * .25);
-      const minY = chessboard.offsetTop - (TILE_SIZE * .25);
-      const maxX = chessboard.offsetLeft + chessboard.clientWidth - (TILE_SIZE * .75);
-      const maxY = chessboard.offsetTop + chessboard.clientHeight - (TILE_SIZE * .75);
-      const x = e.clientX - (TILE_SIZE * .50);
-      const y = e.clientY - (TILE_SIZE * .50);
-      activePiece.style.position = "absolute";
+	function dragPiece(e: React.MouseEvent) {
+		const chessboard = chessboardRef.current;
+		if (activePiece && chessboard) {
+			const minX = chessboard.offsetLeft - (TILE_SIZE * .25);
+			const minY = chessboard.offsetTop - (TILE_SIZE * .25);
+			const maxX = chessboard.offsetLeft + chessboard.clientWidth - (TILE_SIZE * .75);
+			const maxY = chessboard.offsetTop + chessboard.clientHeight - (TILE_SIZE * .75);
+			const x = e.clientX - (TILE_SIZE * .50);
+			const y = e.clientY - (TILE_SIZE * .50);
+			activePiece.style.position = "absolute";
 
-      //If x is smaller than minimum amount
-      if (x < minX) {
-        activePiece.style.left = `${minX}px`;
-      }
-      //If x is bigger than maximum amount
-      else if (x > maxX) {
-        activePiece.style.left = `${maxX}px`;
-      }
-      //If x is in the constraints
-      else {
-        activePiece.style.left = `${x}px`;
-      }
+			//If x is smaller than minimum amount
+			if (x < minX) {
+				activePiece.style.left = `${minX}px`;
+			}
+			//If x is bigger than maximum amount
+			else if (x > maxX) {
+				activePiece.style.left = `${maxX}px`;
+			}
+			//If x is in the constraints
+			else {
+				activePiece.style.left = `${x}px`;
+			}
 
-      //If y is smaller than minimum amount
-      if (y < minY) {
-        activePiece.style.top = `${minY}px`;
-      }
-      //If y is bigger than maximum amount
-      else if (y > maxY) {
-        activePiece.style.top = `${maxY}px`;
-      }
-      //If y is in the constraints
-      else {
-        activePiece.style.top = `${y}px`;
-      }
-    }
-  }
+			//If y is smaller than minimum amount
+			if (y < minY) {
+				activePiece.style.top = `${minY}px`;
+			}
+			//If y is bigger than maximum amount
+			else if (y > maxY) {
+				activePiece.style.top = `${maxY}px`;
+			}
+			//If y is in the constraints
+			else {
+				activePiece.style.top = `${y}px`;
+			}
+		}
+	}
 
-  function dropPiece(e: React.MouseEvent) {
-    // console.log("tile size: " + TILE_SIZE)
-    const chessboard = chessboardRef.current;
-    // const moves = movesRef.current;
-    if (chessboard) {
-      const x = Math.floor((e.clientX - chessboard.offsetLeft) / TILE_SIZE);
-      const y = Math.abs(
-        Math.ceil((e.clientY - chessboard.offsetTop - (TILE_SIZE * 8)) / TILE_SIZE)
-      );
-      movePiece(grabPosition, {x, y})
-    }
-  }
+	function dropPiece(e: React.MouseEvent) {
+		const chessboard = chessboardRef.current;
+		// const moves = movesRef.current;
+		if (chessboard) {
+			const x = Math.floor((e.clientX - chessboard.offsetLeft) / TILE_SIZE);
+			const y = Math.abs(
+				Math.ceil((e.clientY - chessboard.offsetTop - (TILE_SIZE * 8)) / TILE_SIZE)
+			);
+			// movePiece(grabPosition, {x, y}, true)
+			if (activePiece) {
+				const wasValidMove = movePiece(grabPosition, { x, y }, true)
+				if (!wasValidMove) {
+					activePiece.style.position = "relative";
+					activePiece.style.removeProperty("top");
+					activePiece.style.removeProperty("left");
+				}
+				setActivePiece(null)
+			}
+		}
+	}
 
-  function movePiece(initialPosition: Position, finalPosition: Position) {
-    if (activePiece) {
-      const currentPiece = pieces.find((p) =>
-        samePosition(p.position, initialPosition)
-      );
+	function movePiece(initialPosition: Position, finalPosition: Position, userDidMove: boolean): boolean {
+		const currentPiece = pieces.find((p) =>
+			samePosition(p.position, initialPosition)
+		);
 
-      if (currentPiece) {
-        const validMove = referee.isValidMove(
-          initialPosition,
-          finalPosition,
-          currentPiece.type,
-          currentPiece.team,
-          pieces
-        );
+		if (currentPiece) {
+			const validMove = referee.isValidMove(
+				initialPosition,
+				finalPosition,
+				currentPiece.type,
+				currentPiece.team,
+				pieces
+			);
 
-        // const isEnPassantMove = referee.isEnPassantMove(
-        //   initialPosition,
-        //   finalPosition,
-        //   currentPiece.type,
-        //   currentPiece.team,
-        //   pieces
-        // );
+			if (validMove) {
+				//UPDATES THE PIECE POSITION
+				//AND IF A PIECE IS ATTACKED, REMOVES IT
+				const updatedPieces = pieces.reduce((results, piece) => {
+					if (samePosition(piece.position, initialPosition)) {
+						// //SPECIAL MOVE
+						// piece.enPassant =
+						//   Math.abs(initialPosition.y - finalPosition.y) === 2 &&
+						//   piece.type === PieceType.PAWN;
 
-        // const pawnDirection = currentPiece.team === TeamType.OUR ? 1 : -1;
+						piece.position.x = finalPosition.x;
+						piece.position.y = finalPosition.y;
 
-        // if (isEnPassantMove) {
-        //   const updatedPieces = pieces.reduce((results, piece) => {
-        //     if (samePosition(piece.position, initialPosition)) {
-        //       piece.enPassant = false;
-        //       piece.position.x = finalPosition.x;
-        //       piece.position.y = finalPosition.y;
-        //       results.push(piece);
-        //     } else if (!samePosition(piece.position, { x: finalPosition.x, y: finalPosition.y - pawnDirection })) {
-        //         if (piece.type === PieceType.PAWN) {
-        //           piece.enPassant = false;
-        //         }
-        //         results.push(piece);
-        //     }
+						let promotionRow = (piece.team === TeamType.OUR) ? 7 : 0;
 
-        //     return results;
-        //   }, [] as Piece[]);
+						if (finalPosition.y === promotionRow && piece.type === PieceType.PAWN) {
+							modalRef.current?.classList.remove("hidden");
+							setPromotionPawn(piece);
+						}
+						results.push(piece);
+					} else if (!samePosition(piece.position, finalPosition)) {
+						// if (piece.type === PieceType.PAWN) {
+						//   piece.enPassant = false;
+						// }
+						results.push(piece);
+					}
 
-        //   moveList.push(initialPosition.x.toString()
-        //   .concat(initialPosition.y.toString(), finalPosition.x.toString(), finalPosition.y.toString()));
+					return results;
+				}, [] as Piece[]);
 
-        //   setPieces(updatedPieces);
+				const userMove: string = [initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y].join("")
+				if (learnState) {
+					if (userDidMove) {
+						moveOpponentPiece(userMove)
+					}
+					// if (user && learnState && userDidMove) {
+					// if (user && learnState) {
+				} else {
+					moveList.push(userMove)
+				}
+				const textDiv = document.getElementById('text')
+				if (textDiv) {
+					textDiv.textContent = "Piece moved from x: " + initialPosition.x + " y: " + initialPosition.y + " to x: " + finalPosition.x + " y: " + finalPosition.y;
+				}
+				setPieces(updatedPieces)
+				return true
+			}
+		}
+		return false
+	}
 
-        // } else if (validMove) {
-        if (validMove) {
-          //UPDATES THE PIECE POSITION
-          //AND IF A PIECE IS ATTACKED, REMOVES IT
-          const updatedPieces = pieces.reduce((results, piece) => {
-            if (samePosition(piece.position, initialPosition)) {
-              //SPECIAL MOVE
-              piece.enPassant =
-                Math.abs(initialPosition.y - finalPosition.y) === 2 &&
-                piece.type === PieceType.PAWN;
-                
-              piece.position.x = finalPosition.x;
-              piece.position.y = finalPosition.y;
+	async function switchModes() {
+		if (learnState === false) {
+			if (await rootHasChildren(userIsWhite)) {
+				setLearnState(true)
+				setModeButtonText('enter lines')
+				initLearnState(userIsWhite)
+			} else {
+				alert(`must create lines for ${userIsWhite} before learning`)
+			}
+		} else {
+			setLearnState(false)
+			setModeButtonText('learn')
+			if (userIsWhite === true) {
+				setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
+			} else {
+				setPieces(JSON.parse(JSON.stringify(blackBoardState)))
+			}
+		}
+	}
+	// TODO
+	async function moveOpponentPiece(userMove: string) {
+		if (currentMoveID) {
+			const childData: ChildData = await getChildren(currentMoveID)
+			let oppMoveID: string = ""
+			for (let i in childData.moves) {
+				if (childData.moves[i] === userMove) {
+					oppMoveID = childData.ids[i]
+					break
+				}
+			}
+			if (oppMoveID === "") {
+				endOfLine("incorrect move")
+				return
+			}
+			const oppData: ChildData = await getChildren(oppMoveID)
+			if (!oppData.ids.length) {
+				endOfLine("nice job")
+				return
+			}
+			// const randIndex = Math.floor(Math.random() * oppData.ids.length)
+			// setCurrentMoveID(oppData.ids[randIndex])
+			// const randomOppMove: string = oppData.moves[randIndex]
+			// const initialX: number = +randomOppMove[0]
+			// const initialY: number = +randomOppMove[1]
+			// const finalX: number = +randomOppMove[2]
+			// const finalY: number = +randomOppMove[3]
+			// movePiece({x: initialX, y: initialY}, {x: finalX, y: finalY}, false)
+			const randIndex = pickRandomChildAndMove(oppData)
 
-              let promotionRow = (piece.team === TeamType.OUR) ? 7 : 0;
+			const oppChildData: ChildData = await getChildren(oppData.ids[randIndex])
+			if (!oppChildData.moves.length) {
+				endOfLine("nice job")
+				return
+			}
+		}
+	}
 
-              if(finalPosition.y === promotionRow && piece.type === PieceType.PAWN) {
-                modalRef.current?.classList.remove("hidden");
-                setPromotionPawn(piece);
-              }
-              results.push(piece);
-            } else if (!samePosition(piece.position, finalPosition)) {
-              if (piece.type === PieceType.PAWN) {
-                piece.enPassant = false;
-              }
-              results.push(piece);
-            }
+	function pickRandomChildAndMove(moveNode: ChildData): number {
+		const randIndex = Math.floor(Math.random() * moveNode.ids.length)
+		const randomOppMove: string = moveNode.moves[randIndex]
+		const initialX: number = +randomOppMove[0]
+		const initialY: number = +randomOppMove[1]
+		const finalX: number = +randomOppMove[2]
+		const finalY: number = +randomOppMove[3]
+		movePiece({ x: initialX, y: initialY }, { x: finalX, y: finalY }, false)
+		setCurrentMoveID(moveNode.ids[randIndex])
+		return randIndex
+	}
 
-            return results;
-          }, [] as Piece[]);
+	// TODO
+	async function initLearnState(userColor: boolean) {
+		if (user && userColor === false) {
+			// pickRandomChildAndMove(await getChildren(user.blackRootID))
+			const moveNode = await getChildren(user.blackRootID)
+			const randIndex = Math.floor(Math.random() * moveNode.ids.length)
+			const randomOppMove: string = moveNode.moves[randIndex]
+			const initialX: number = +randomOppMove[0]
+			const initialY: number = +randomOppMove[1]
+			const finalX: number = +randomOppMove[2]
+			const finalY: number = +randomOppMove[3]
+			// movePiece({x: initialX, y: initialY}, {x: finalX, y: finalY}, false)
 
-          // if (modeButtonText === "enter lines") {
-          //   setPieceMovedFlag(true);
-          // }
-          if (learnState) {
-            moveOpponentPiece();
-          } else {
-            const arr = [initialPosition.x, initialPosition.y, finalPosition.x, finalPosition.y]
-            moveList.push(arr.join(""));
-          }
-          const textDiv = document.getElementById('text');
-          if (textDiv) {
-            textDiv.textContent = "Piece moved from x: " + initialPosition.x + " y: " + initialPosition.y + " to x: " + finalPosition.x + " y: " + finalPosition.y;
-          }
-          setPieces(updatedPieces);
-        } else {
-          console.log("why")
-          //RESETS THE PIECE POSITION
-          activePiece.style.position = "relative";
-          activePiece.style.removeProperty("top");
-          activePiece.style.removeProperty("left");
-        }
-      }
-      setActivePiece(null);
-    }
-  }
+			const tempPieces: [Piece] = JSON.parse(JSON.stringify(blackBoardState))
+			const updatedPieces = tempPieces.reduce((results, piece) => {
+				if (samePosition(piece.position, { x: initialX, y: initialY })) {
+					piece.position.x = finalX;
+					piece.position.y = finalY;
+					results.push(piece);
+				} else if (!samePosition(piece.position, { x: finalX, y: finalY })) {
+					results.push(piece);
+				}
+				return results;
+			}, [] as Piece[]);
 
-  // function saveButtonClicked() { 
-  //   console.log("user:", user) 
-  //   if (user) {
-  //     let newMovelist: number[][][] = user?.moveList;
-  //     newMovelist.push(moveList)
-  //     console.log("movelist:", newMovelist)
-  //     const moves = {
-  //       moveList: newMovelist
-  //     }
-  //     const username = user.username
-  //     const token = localStorage.getItem('token')
-  //     fetch(`/user/${username}`, {
-  //       method: 'PATCH',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'auth-token': `${token}`
-  //       },
-  //       body: JSON.stringify(moves),
-  //     })
-  //     .then(res => res.json())
-  //     .then(data => {
-  //       console.log('Data:', data);
-  //     })
-  //   } 
-  // }
+			setPieces(updatedPieces)
+			setCurrentMoveID(moveNode.ids[randIndex])
+		} else {
+			setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
+		}
+	}
 
-  function switchModes() {
-    if (learnState === false) {
-      setLearnState(true)
-      setModeButtonText('enter lines')
-      // resetLearningArray()
-    } else {
-      setLearnState(false)
-      setModeButtonText('learn')
-      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
-    }
-  }
+	function endOfLine(message: string) {
+		alert(message)
+		const currID = userIsWhite === true ? user?.whiteRootID : user?.blackRootID
+		setCurrentMoveID(currID)
+		initLearnState(userIsWhite)
+	}
 
-  function moveOpponentPiece() {
-    console.log(learningArray)
-    if (learningArray.length > index) {
-      const move = learningArray[index];
-      console.log("opponent moves from: " + move[0] + move[1] + " to " + move[2] + move[3])
-      movePiece({x: move[0], y: move[1]}, {x: move[2], y: move[3]})
-    } else {
-      console.log("completed the line")
-      // resetLearningArray()
-      setPieces(JSON.parse(JSON.stringify(initialBoardState)));
-    }
-    setIndex(index + 2)
-  }
+	async function postMove(object: Object) {
+		return fetch('/data/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(object),
+		})
+			.then(res => res.json())
+	}
 
-  // function resetLearningArray() {
-  //   if (user) {
-  //     const learningMoveList = user?.moveList;
-  //     setIndex(1)
-  //     const randIndex = Math.floor(Math.random() * learningMoveList.length);
-  //     setLearningArray(learningMoveList[randIndex]);
-  //     setPieces(JSON.parse(JSON.stringify(initialBoardState)));
-  //   }
-  // }
+	async function register() {
+		const username = (document.getElementById('username') as HTMLInputElement).value;
+		const password = (document.getElementById('password') as HTMLInputElement).value;
+		if (username && password) {
+			const whiteRoot = {
+				move: `${username}-white-root`,
+				parentID: "none"
+			}
+			const blackRoot = {
+				move: `${username}-black-root`,
+				parentID: "none"
+			}
+			const user = {
+				username: username,
+				password: password,
+				whiteRootID: await postMove(whiteRoot),
+				blackRootID: await postMove(blackRoot)
+			}
+			const status = await fetch('/user/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(user),
+			})
+				.then(res => res.status)
 
-  async function register() {
-    const username = (document.getElementById('username') as HTMLInputElement).value;
-    const password = (document.getElementById('password') as HTMLInputElement).value;
-    if (username && password) {
-      let rootID: string = ""
-      const root = {
-        move: "root",
-        parentID: "none"
-      }
-      await fetch('/data/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(root),
-      })
-      .then(res => res.json())
-      .then(data => rootID = data)
+			if (status === 200) {
+				login(username, password)
+			}
+		} else {
+			alert("Need both username and password")
+		}
+	}
 
-      const user = {
-        username: username,
-        password: password,
-        rootID: rootID
-      }
-      await fetch('/user/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(user),
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Data:', data);
-      })
-    } else {
-      alert("Need both username and password")
-    }
-  }
+	function loginButton() {
+		const username = (document.getElementById('username') as HTMLInputElement).value;
+		const password = (document.getElementById('password') as HTMLInputElement).value;
+		if (username && password) {
+			login(username, password)
+		} else {
+			alert("Need both username and password")
+		}
+	}
 
-  function login() {
-    const username = (document.getElementById('username') as HTMLInputElement).value;
-    const password = (document.getElementById('password') as HTMLInputElement).value;
-    if (username && password) {
-      const user = {
-        username: username,
-        password: password
-      }
-      fetch('/user/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(user),
-      })
-      .then(res => {
-        res.text().then((data) => {
-          console.log("data:", data)
-          localStorage.setItem('token', data)
-        })
-        window.location.reload()
-      })
-    } else {
-      alert("Need both username and password")
-    }
-  }
+	function login(username: string, password: string) {
+		const user = {
+			username: username,
+			password: password
+		}
+		fetch('/user/login', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(user),
+		})
+			.then(res => res.text())
+			.then(token => localStorage.setItem('token', token))
+		window.location.reload()
+	}
 
-  function logout() {
-    localStorage.removeItem('token')
-    window.location.reload()
-  }
+	function logout() {
+		localStorage.removeItem('token')
+		window.location.reload()
+	}
 
-  async function getChildren(id: string) {
-    let ids: [string] | [] = []
-    let moves: [string] | [] = []
-    await fetch(`/data/${id}`)
-    .then(res => res.json())
-    .then(data => {
-        ids = data.childIDs
-        moves = data.childMoves
-    })
-    return {ids: ids, moves: moves}
-  }
+	async function getChildren(id: string): Promise<ChildData> {
+		let childData: ChildData = { ids: [""], moves: [""] }
+		await fetch(`/data/${id}`)
+			.then(res => res.json())
+			.then(data => {
+				childData.ids = data.childIDs
+				childData.moves = data.childMoves
+			})
+		return childData
+	}
 
-  // Creates new child and attaches _id to parent's children array
-  async function createChild(parentID: string, move: string): Promise<string> {
-      const newChild = {
-          move: move,
-          parentID: parentID
-      }
-      let id = ""
+	async function rootHasChildren(userIsWhite: boolean): Promise<boolean> {
+		if (user) {
+			const rootID: string = userIsWhite === true ? user.whiteRootID : user.blackRootID
+			const rootData: ChildData = await getChildren(rootID)
+			return !rootData.ids.length ? false : true
+		}
+		return false
+	}
 
-      await fetch('/data', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newChild),
-      })
-      .then(res => res.json())
-      .then(data => id = data)
+	// Creates new child and attaches _id to parent's children array
+	async function createChild(parentID: string, move: string): Promise<string> {
+		const newChild = {
+			move: move,
+			parentID: parentID
+		}
+		const id = await postMove(newChild)
+		const childInfo = {
+			id: id,
+			move: move
+		}
+		await fetch(`/data/add/${parentID}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(childInfo)
+		})
+			.then(res => res.json())
+			.then(data => console.log("data:", data))
+		return id;
+	}
 
-      const childInfo = {
-          id: id,
-          move: move
-      }
+	async function saveButtonClicked() {
+		if (user) {
+			let id = userIsWhite === true ? user.whiteRootID : user.blackRootID
+			let childData: ChildData = await getChildren(id)
 
-      await fetch(`/data/add/${parentID}`, {
-          method: 'PATCH',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(childInfo)
-      })
-      .then(res => res.json())
-      .then(data => console.log("data:", data))
+			for (let i = 0; i < moveList.length; i++) {
+				let hasChildren = (childData.moves.length > 0) ? true : false
+				if (hasChildren) {
+					for (let j = 0; j < childData.moves.length; j++) {
+						if (childData.moves[j] === moveList[i]) {
+							id = childData.ids[j]
+							childData = await getChildren(childData.ids[j])
+							break
+						}
+						id = await createChild(id, moveList[i])
+					}
+				} else {
+					id = await createChild(id, moveList[i])
+				}
+			}
+			setMoveList([])
+			userIsWhite === true ? setPieces(JSON.parse(JSON.stringify(whiteBoardState))) : setPieces(JSON.parse(JSON.stringify(blackBoardState)))
+		}
+	}
 
-      return id;
-  }
+	async function flipUserColor() {
+		if (learnState) {
+			if (!await rootHasChildren(!userIsWhite)) {
+				alert(`must create lines for ${!userIsWhite} before learning`)
+				return
+			}
+			initLearnState(!userIsWhite)
+		} else {
+			userIsWhite === false ? setPieces(JSON.parse(JSON.stringify(whiteBoardState))) : setPieces(JSON.parse(JSON.stringify(blackBoardState)))
+		}
+		const rootID = userIsWhite === false ? user?.whiteRootID : user?.blackRootID
+		setCurrentMoveID(rootID)
+		setUserIsWhite(!userIsWhite)
+	}
 
-  async function saveButtonClicked() {
-    if (user) {
-      let id = user.rootID;
-      let childData: {ids: [], moves: []} = await getChildren(id)
+	function initializeBoard() {
+		let board = []
+		for (let j = VERTICAL_AXIS.length - 1; j >= 0; j--) {
+			for (let i = 0; i < HORIZONTAL_AXIS.length; i++) {
+				const number = j + i + 2;
+				const piece = pieces.find((p) =>
+					samePosition(p.position, { x: i, y: j })
+				);
+				let image = piece ? piece.image : undefined;
 
-      console.log("childata:", childData)
+				board.push(<Tile key={`${j},${i}`} image={image} number={number} />);
+			}
+		}
+		return board;
+	}
 
-      for(let i = 0; i < moveList.length; i++) {        
-          let hasChildren = (childData.moves.length > 0) ? true : false
-          if (hasChildren) {
-              for (let j = 0; j < childData.moves.length; j++) {
-                  if (childData.moves[j] === moveList[i]) {
-                      id = childData.ids[j]
-                      childData = await getChildren(childData.ids[j])
-                      break
-                  }
-                  id = await createChild(id, moveList[i])
-              }
-          } else {
-              id = await createChild(id, moveList[i])
-          }
-      }   
-    }     
-  }
+	function userComponent() {
+		if (user) {
+			return (
+				<>
+					<div>
+						<div>{user.username} is logged in.</div>
+						<button id="logout" onClick={logout}>logout</button>
+					</div>
+				</>
+			)
+		} else {
+			return (
+				<>
+					<input id="username" type="text" placeholder="Username"></input>
+					<input id="password" type="text" placeholder="Password"></input>
+					<div>
+						<button id="register" onClick={register}>Register</button>
+						<button id="login" onClick={loginButton}>Login</button>
+					</div>
+				</>
+			)
+		}
+	}
 
-  function initializeBoard() {
-    let board = []
-
-    for (let j = VERTICAL_AXIS.length - 1; j >= 0; j--) {
-      for (let i = 0; i < HORIZONTAL_AXIS.length; i++) {
-        const number = j + i + 2;
-        const piece = pieces.find((p) =>
-          samePosition(p.position, { x: i, y: j })
-        );
-        let image = piece ? piece.image : undefined;
-  
-        board.push(<Tile key={`${j},${i}`} image={image} number={number} />);
-      }
-    }
-    return board;
-  }
-
-  function userComponent() {
-    if (user) {
-      return (
-        <>
-          <div>
-            <div>{user.username} is logged in.</div>
-            <button id="logout" onClick={logout}>logout</button>
-          </div>
-        </>
-      )
-    } else {
-      return (
-        <>
-          <input id="username" type="text" placeholder="Username"></input>
-          <input id="password" type="text" placeholder="Password"></input>
-          <div>
-            <button id="register" onClick={register}>Register</button>
-            <button id="login" onClick={login}>Login</button>
-          </div>
-        </>
-      )
-    }
-  }
-
-  return (
-    <>
-      {userComponent()}
-      <div 
-        onMouseDown={(e) => grabPiece(e)}
-        onMouseMove={(e) => dragPiece(e)}
-        onMouseUp={(e) => dropPiece(e)}
-        id="chessboard" 
-        ref={chessboardRef}
-      >
-        {initializeBoard()}
-      </div>
-      <div id="moves">
-        <button onClick={saveButtonClicked}>save</button>
-        <button onClick={switchModes}>{modeButtonText}</button>
-      </div>
-      <div id="text">
-        Move a piece
-      </div>
-      {/* <div>
-        <input id="username" type="text" placeholder="Username"></input>
-        <input id="password" type="text" placeholder="Password"></input>
-        <div>
-          <button id="register" onClick={register}>Register</button>
-          <button id="login" onClick={login}>Login</button>
-        </div>
-      </div> */}
-    </>
-  )
+	return (
+		<>
+			{userComponent()}
+			<div
+				onMouseDown={(e) => grabPiece(e)}
+				onMouseMove={(e) => dragPiece(e)}
+				onMouseUp={(e) => dropPiece(e)}
+				id="chessboard"
+				ref={chessboardRef}
+			>
+				{initializeBoard()}
+			</div>
+			<div id="moves">
+				<button onClick={saveButtonClicked}>save</button>
+				<button onClick={switchModes}>{modeButtonText}</button>
+				<button onClick={flipUserColor}>flip</button>
+			</div>
+			<div id="text">
+				Move a piece
+			</div>
+		</>
+	)
 }

@@ -13,7 +13,11 @@ const UserSchema = mongoose.Schema({
         max: 1024,
         min: 4
     },
-    rootID: {
+    whiteRootID: {
+        type: String,
+        required: true
+    },
+    blackRootID: {
         type: String,
         required: true
     },
