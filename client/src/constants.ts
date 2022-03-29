@@ -47,6 +47,20 @@ export interface User {
   blackRootID: string;
 }
 
+export type AppContextType = {
+  user: User | null;
+  saveUser: (user: User) => void;
+  removeUser: () => void;
+  isWhite: boolean;
+  flipColor: () => void;
+  currentMoveID: string | null;
+  setCurrentMoveID: (moveID: string) => void;
+  moveList: string[];
+  setMoveList: (moveList: string[]) => void;
+  pieces: Piece[];
+  setPieces: (pieces: Piece[]) => void;
+};
+
 export interface ChildData {
   ids: [string];
   moves: [string];

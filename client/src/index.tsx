@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
+import Datatest from './components/datatest';
 import reportWebVitals from './reportWebVitals';
+import { ContextProvider } from "./AppContext"
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <ContextProvider>
+    <React.StrictMode>
+      <App />
+      {/* <Datatest/> */}
+    </React.StrictMode>,
+  </ContextProvider>,
   document.getElementById('root')
 );
 

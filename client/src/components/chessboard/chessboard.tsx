@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import Tile from "../tile/tile";
 import Referee from "../../referee/Referee";
+import UserComponent from "../user/user"
 import "./chessboard.css"
 import {
 	VERTICAL_AXIS,
@@ -13,41 +14,33 @@ import {
 	blackBoardState,
 	Position,
 	samePosition,
-	User,
+	AppContextType,
 	ChildData
 } from "../../constants";
+import { postMove, getChildren } from "../../helperFuncs";
+import AppContext from "../../AppContext";
+import SaveComponent from "../save/save";
 
 export default function Chessboard() {
 	const [activePiece, setActivePiece] = useState<HTMLElement | null>(null)
 	const [promotionPawn, setPromotionPawn] = useState<Piece>()
 	const [grabPosition, setGrabPosition] = useState<Position>({ x: -1, y: -1 })
 	const [learnState, setLearnState] = useState<Boolean>(false)
-	const [user, setUser] = useState<User>()
-	let [moveList, setMoveList] = useState<string[]>([])
-	const [pieces, setPieces] = useState<Piece[]>(JSON.parse(JSON.stringify(whiteBoardState)))
-	const [userIsWhite, setUserIsWhite] = useState<boolean>(true)
-	const [currentMoveID, setCurrentMoveID] = useState<string>()
+	const { 
+		user, 
+		isWhite, 
+		flipColor, 
+		currentMoveID, 
+		setCurrentMoveID,
+		pieces,
+		setPieces,
+		moveList, 
+		setMoveList
+	} = useContext(AppContext) as AppContextType
 	const [modeButtonText, setModeButtonText] = useState<String>("learn")
 	const chessboardRef = useRef<HTMLDivElement>(null)
 	const modalRef = useRef<HTMLDivElement>(null)
 	const referee = new Referee()
-
-	useEffect(() => {
-		const token = localStorage.getItem('token')
-		if (token) {
-			fetch('/user', {
-				method: 'GET',
-				headers: {
-					'auth-token': `${token}`
-				}
-			})
-				.then(res => res.json())
-				.then(user => {
-					setUser(user)
-					setCurrentMoveID(user.whiteRootID)
-				})
-		}
-	}, [])
 
 	function grabPiece(e: React.MouseEvent) {
 		const element = e.target as HTMLElement;
@@ -181,7 +174,8 @@ export default function Chessboard() {
 					// if (user && learnState && userDidMove) {
 					// if (user && learnState) {
 				} else {
-					moveList.push(userMove)
+					// moveList.push(userMove)
+					setMoveList([...moveList, userMove])
 				}
 				const textDiv = document.getElementById('text')
 				if (textDiv) {
@@ -196,24 +190,24 @@ export default function Chessboard() {
 
 	async function switchModes() {
 		if (learnState === false) {
-			if (await rootHasChildren(userIsWhite)) {
+			if (await rootHasChildren(isWhite)) {
 				setLearnState(true)
 				setModeButtonText('enter lines')
-				initLearnState(userIsWhite)
+				initLearnState(isWhite)
 			} else {
-				alert(`must create lines for ${userIsWhite} before learning`)
+				alert(`must create lines for ${isWhite} before learning`)
 			}
 		} else {
 			setLearnState(false)
 			setModeButtonText('learn')
-			if (userIsWhite === true) {
+			if (isWhite === true) {
 				setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
 			} else {
 				setPieces(JSON.parse(JSON.stringify(blackBoardState)))
 			}
 		}
 	}
-	// TODO
+
 	async function moveOpponentPiece(userMove: string) {
 		if (currentMoveID) {
 			const childData: ChildData = await getChildren(currentMoveID)
@@ -233,14 +227,6 @@ export default function Chessboard() {
 				endOfLine("nice job")
 				return
 			}
-			// const randIndex = Math.floor(Math.random() * oppData.ids.length)
-			// setCurrentMoveID(oppData.ids[randIndex])
-			// const randomOppMove: string = oppData.moves[randIndex]
-			// const initialX: number = +randomOppMove[0]
-			// const initialY: number = +randomOppMove[1]
-			// const finalX: number = +randomOppMove[2]
-			// const finalY: number = +randomOppMove[3]
-			// movePiece({x: initialX, y: initialY}, {x: finalX, y: finalY}, false)
 			const randIndex = pickRandomChildAndMove(oppData)
 
 			const oppChildData: ChildData = await getChildren(oppData.ids[randIndex])
@@ -248,6 +234,8 @@ export default function Chessboard() {
 				endOfLine("nice job")
 				return
 			}
+		} else {
+			console.log("currentMoveID is null")
 		}
 	}
 
@@ -263,9 +251,8 @@ export default function Chessboard() {
 		return randIndex
 	}
 
-	// TODO
-	async function initLearnState(userColor: boolean) {
-		if (user && userColor === false) {
+	async function initLearnState(isWhite: boolean) {
+		if (user && isWhite === false) {
 			// pickRandomChildAndMove(await getChildren(user.blackRootID))
 			const moveNode = await getChildren(user.blackRootID)
 			const randIndex = Math.floor(Math.random() * moveNode.ids.length)
@@ -274,9 +261,8 @@ export default function Chessboard() {
 			const initialY: number = +randomOppMove[1]
 			const finalX: number = +randomOppMove[2]
 			const finalY: number = +randomOppMove[3]
-			// movePiece({x: initialX, y: initialY}, {x: finalX, y: finalY}, false)
 
-			const tempPieces: [Piece] = JSON.parse(JSON.stringify(blackBoardState))
+			const tempPieces: Piece[] = JSON.parse(JSON.stringify(blackBoardState))
 			const updatedPieces = tempPieces.reduce((results, piece) => {
 				if (samePosition(piece.position, { x: initialX, y: initialY })) {
 					piece.position.x = finalX;
@@ -297,98 +283,11 @@ export default function Chessboard() {
 
 	function endOfLine(message: string) {
 		alert(message)
-		const currID = userIsWhite === true ? user?.whiteRootID : user?.blackRootID
-		setCurrentMoveID(currID)
-		initLearnState(userIsWhite)
-	}
-
-	async function postMove(object: Object) {
-		return fetch('/data/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(object),
-		})
-			.then(res => res.json())
-	}
-
-	async function register() {
-		const username = (document.getElementById('username') as HTMLInputElement).value;
-		const password = (document.getElementById('password') as HTMLInputElement).value;
-		if (username && password) {
-			const whiteRoot = {
-				move: `${username}-white-root`,
-				parentID: "none"
-			}
-			const blackRoot = {
-				move: `${username}-black-root`,
-				parentID: "none"
-			}
-			const user = {
-				username: username,
-				password: password,
-				whiteRootID: await postMove(whiteRoot),
-				blackRootID: await postMove(blackRoot)
-			}
-			const status = await fetch('/user/register', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(user),
-			})
-				.then(res => res.status)
-
-			if (status === 200) {
-				login(username, password)
-			}
-		} else {
-			alert("Need both username and password")
+		if (user) {
+			const currID = isWhite === true ? user.whiteRootID : user.blackRootID
+			setCurrentMoveID(currID)
+			initLearnState(isWhite)
 		}
-	}
-
-	function loginButton() {
-		const username = (document.getElementById('username') as HTMLInputElement).value;
-		const password = (document.getElementById('password') as HTMLInputElement).value;
-		if (username && password) {
-			login(username, password)
-		} else {
-			alert("Need both username and password")
-		}
-	}
-
-	function login(username: string, password: string) {
-		const user = {
-			username: username,
-			password: password
-		}
-		fetch('/user/login', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(user),
-		})
-			.then(res => res.text())
-			.then(token => localStorage.setItem('token', token))
-		window.location.reload()
-	}
-
-	function logout() {
-		localStorage.removeItem('token')
-		window.location.reload()
-	}
-
-	async function getChildren(id: string): Promise<ChildData> {
-		let childData: ChildData = { ids: [""], moves: [""] }
-		await fetch(`/data/${id}`)
-			.then(res => res.json())
-			.then(data => {
-				childData.ids = data.childIDs
-				childData.moves = data.childMoves
-			})
-		return childData
 	}
 
 	async function rootHasChildren(userIsWhite: boolean): Promise<boolean> {
@@ -400,67 +299,21 @@ export default function Chessboard() {
 		return false
 	}
 
-	// Creates new child and attaches _id to parent's children array
-	async function createChild(parentID: string, move: string): Promise<string> {
-		const newChild = {
-			move: move,
-			parentID: parentID
-		}
-		const id = await postMove(newChild)
-		const childInfo = {
-			id: id,
-			move: move
-		}
-		await fetch(`/data/add/${parentID}`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify(childInfo)
-		})
-			.then(res => res.json())
-			.then(data => console.log("data:", data))
-		return id;
-	}
-
-	async function saveButtonClicked() {
-		if (user) {
-			let id = userIsWhite === true ? user.whiteRootID : user.blackRootID
-			let childData: ChildData = await getChildren(id)
-
-			for (let i = 0; i < moveList.length; i++) {
-				let hasChildren = (childData.moves.length > 0) ? true : false
-				if (hasChildren) {
-					for (let j = 0; j < childData.moves.length; j++) {
-						if (childData.moves[j] === moveList[i]) {
-							id = childData.ids[j]
-							childData = await getChildren(childData.ids[j])
-							break
-						}
-						id = await createChild(id, moveList[i])
-					}
-				} else {
-					id = await createChild(id, moveList[i])
-				}
-			}
-			setMoveList([])
-			userIsWhite === true ? setPieces(JSON.parse(JSON.stringify(whiteBoardState))) : setPieces(JSON.parse(JSON.stringify(blackBoardState)))
-		}
-	}
-
 	async function flipUserColor() {
-		if (learnState) {
-			if (!await rootHasChildren(!userIsWhite)) {
-				alert(`must create lines for ${!userIsWhite} before learning`)
-				return
+		if (user) {
+			if (learnState) {
+				if (!await rootHasChildren(!isWhite)) {
+					alert(`must create lines for ${!isWhite} before learning`)
+					return
+				}
+				initLearnState(!isWhite)
+			} else {
+				isWhite === false ? setPieces(JSON.parse(JSON.stringify(whiteBoardState))) : setPieces(JSON.parse(JSON.stringify(blackBoardState)))
 			}
-			initLearnState(!userIsWhite)
-		} else {
-			userIsWhite === false ? setPieces(JSON.parse(JSON.stringify(whiteBoardState))) : setPieces(JSON.parse(JSON.stringify(blackBoardState)))
+			const rootID = isWhite === false ? user?.whiteRootID : user?.blackRootID
+			setCurrentMoveID(rootID)
+			flipColor()
 		}
-		const rootID = userIsWhite === false ? user?.whiteRootID : user?.blackRootID
-		setCurrentMoveID(rootID)
-		setUserIsWhite(!userIsWhite)
 	}
 
 	function initializeBoard() {
@@ -479,33 +332,9 @@ export default function Chessboard() {
 		return board;
 	}
 
-	function userComponent() {
-		if (user) {
-			return (
-				<>
-					<div>
-						<div>{user.username} is logged in.</div>
-						<button id="logout" onClick={logout}>logout</button>
-					</div>
-				</>
-			)
-		} else {
-			return (
-				<>
-					<input id="username" type="text" placeholder="Username"></input>
-					<input id="password" type="text" placeholder="Password"></input>
-					<div>
-						<button id="register" onClick={register}>Register</button>
-						<button id="login" onClick={loginButton}>Login</button>
-					</div>
-				</>
-			)
-		}
-	}
-
 	return (
 		<>
-			{userComponent()}
+			<UserComponent/>
 			<div
 				onMouseDown={(e) => grabPiece(e)}
 				onMouseMove={(e) => dragPiece(e)}
@@ -516,7 +345,7 @@ export default function Chessboard() {
 				{initializeBoard()}
 			</div>
 			<div id="moves">
-				<button onClick={saveButtonClicked}>save</button>
+				<SaveComponent/>
 				<button onClick={switchModes}>{modeButtonText}</button>
 				<button onClick={flipUserColor}>flip</button>
 			</div>

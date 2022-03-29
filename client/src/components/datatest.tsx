@@ -1,6 +1,11 @@
+import { useContext, useState } from "react"
+// import { UserContext } from "../UserContext"
+
 export default function Datatest() {
     const people = [ "ethan", "ryan", "hanna"]
     const rootID = "6232affa1e1dcfdba8be68ca"
+
+    // const test = useContext(UserContext)
 
     async function getChildren(id: string) {
         let ids: [string] | [] = []
@@ -109,11 +114,14 @@ export default function Datatest() {
     }
 
     return (
+        // <div>
+        //     <input type="text" id="id" placeholder="ID to delete"></input>
+        //     {/* <input type="text" id="childname" placeholder="Child Name"></input> */}
+        //     <button onClick={ yoyo }>patch</button>
+        //     <button onClick={ deleet }>delete</button>
+        // </div>
         <div>
-            <input type="text" id="id" placeholder="ID to delete"></input>
-            {/* <input type="text" id="childname" placeholder="Child Name"></input> */}
-            <button onClick={ yoyo }>patch</button>
-            <button onClick={ deleet }>delete</button>
+            {test}
         </div>
     )
 }
