@@ -123,6 +123,7 @@ export default function Chessboard() {
 	}
 
 	function movePiece(initialPosition: Position, finalPosition: Position, userDidMove: boolean): boolean {
+		// console.log("currentMoveID on move:", currentMoveID)
 		const currentPiece = pieces.find((p) =>
 			samePosition(p.position, initialPosition)
 		);
@@ -191,14 +192,12 @@ export default function Chessboard() {
 	async function switchModes() {
 		if (learnState === false) {
 			if (await rootHasChildren(isWhite)) {
-				setLearnState(true)
 				setModeButtonText('enter lines')
 				initLearnState(isWhite)
 			} else {
 				alert(`must create lines for ${isWhite} before learning`)
 			}
 		} else {
-			setLearnState(false)
 			setModeButtonText('learn')
 			if (isWhite === true) {
 				setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
@@ -206,6 +205,7 @@ export default function Chessboard() {
 				setPieces(JSON.parse(JSON.stringify(blackBoardState)))
 			}
 		}
+		setLearnState(!learnState)
 	}
 
 	async function moveOpponentPiece(userMove: string) {
@@ -230,6 +230,7 @@ export default function Chessboard() {
 			const randIndex = pickRandomChildAndMove(oppData)
 
 			const oppChildData: ChildData = await getChildren(oppData.ids[randIndex])
+			// console.log("nextMoves:", oppChildData.moves)
 			if (!oppChildData.moves.length) {
 				endOfLine("nice job")
 				return
@@ -252,32 +253,37 @@ export default function Chessboard() {
 	}
 
 	async function initLearnState(isWhite: boolean) {
-		if (user && isWhite === false) {
-			// pickRandomChildAndMove(await getChildren(user.blackRootID))
-			const moveNode = await getChildren(user.blackRootID)
-			const randIndex = Math.floor(Math.random() * moveNode.ids.length)
-			const randomOppMove: string = moveNode.moves[randIndex]
-			const initialX: number = +randomOppMove[0]
-			const initialY: number = +randomOppMove[1]
-			const finalX: number = +randomOppMove[2]
-			const finalY: number = +randomOppMove[3]
+		if (user) {
+			if (isWhite) {
+				setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
+				setCurrentMoveID(user.whiteRootID)
+			} else {
+				// pickRandomChildAndMove(await getChildren(user.blackRootID))
+				const moveNode = await getChildren(user.blackRootID)
+				const randIndex = Math.floor(Math.random() * moveNode.ids.length)
+				const randomOppMove: string = moveNode.moves[randIndex]
+				const initialX: number = +randomOppMove[0]
+				const initialY: number = +randomOppMove[1]
+				const finalX: number = +randomOppMove[2]
+				const finalY: number = +randomOppMove[3]
 
-			const tempPieces: Piece[] = JSON.parse(JSON.stringify(blackBoardState))
-			const updatedPieces = tempPieces.reduce((results, piece) => {
-				if (samePosition(piece.position, { x: initialX, y: initialY })) {
-					piece.position.x = finalX;
-					piece.position.y = finalY;
-					results.push(piece);
-				} else if (!samePosition(piece.position, { x: finalX, y: finalY })) {
-					results.push(piece);
-				}
-				return results;
-			}, [] as Piece[]);
+				const tempPieces: Piece[] = JSON.parse(JSON.stringify(blackBoardState))
+				const updatedPieces = tempPieces.reduce((results, piece) => {
+					if (samePosition(piece.position, { x: initialX, y: initialY })) {
+						piece.position.x = finalX;
+						piece.position.y = finalY;
+						results.push(piece);
+					} else if (!samePosition(piece.position, { x: finalX, y: finalY })) {
+						results.push(piece);
+					}
+					return results;
+				}, [] as Piece[]);
 
-			setPieces(updatedPieces)
-			setCurrentMoveID(moveNode.ids[randIndex])
+				setPieces(updatedPieces)
+				setCurrentMoveID(moveNode.ids[randIndex])
+			}
 		} else {
-			setPieces(JSON.parse(JSON.stringify(whiteBoardState)))
+			console.log("ERROR: user is undefined (initLearnState)")
 		}
 	}
 
@@ -313,7 +319,7 @@ export default function Chessboard() {
 			const rootID = isWhite === false ? user?.whiteRootID : user?.blackRootID
 			setCurrentMoveID(rootID)
 			flipColor()
-		}
+		} 
 	}
 
 	function initializeBoard() {

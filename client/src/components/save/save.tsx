@@ -39,17 +39,22 @@ export default function SaveComponent() {
 			let id = isWhite === true ? user.whiteRootID : user.blackRootID
 			let childData: ChildData = await getChildren(id)
 
+			console.log("movelist:", moveList)
+
 			for (let i = 0; i < moveList.length; i++) {
 				let hasChildren = (childData.moves.length > 0) ? true : false
 				if (hasChildren) {
+					let broken: boolean = false
 					for (let j = 0; j < childData.moves.length; j++) {
 						if (childData.moves[j] === moveList[i]) {
+							// console.log("same move:", childData.moves[j])
 							id = childData.ids[j]
-							childData = await getChildren(childData.ids[j])
+							childData = await getChildren(id)
+							broken = true
 							break
 						}
-						id = await createChild(id, moveList[i])
 					}
+					if (!broken) id = await createChild(id, moveList[i])
 				} else {
 					id = await createChild(id, moveList[i])
 				}
