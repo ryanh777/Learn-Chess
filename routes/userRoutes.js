@@ -48,7 +48,12 @@ router.post("/login", async (req, res) => {
   if (!validPass) return res.status(400).send("Invalid password");
 
   const token = jwt.sign({ _id: user._id }, process.env.SECRET_TOKEN);
-  res.header("auth-token", token).send(token);
+  const response = {
+    token: token,
+    whiteRootID: user.whiteRootID,
+    blackRootID: user.blackRootID,
+  };
+  res.header("auth-token", token).status(200).send(response);
 });
 
 router.patch("/:username", verify, async (req, res) => {
