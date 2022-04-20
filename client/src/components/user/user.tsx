@@ -7,12 +7,16 @@ interface Props {
 }
 
 const User = (props: Props): JSX.Element => {
-	const {state} = useContext(LogicContext)
+	const { state, dispatch } = useContext(LogicContext)
 	const { user } = state
 	return (
 		<>
 			<h1>{user.username}</h1>
-			<button onClick={() => props.dispatchLogout({ type: 'logout' })}>
+			<button onClick={() => {
+				localStorage.removeItem('token')
+				dispatch({type: "reset-state"})
+				props.dispatchLogout({ type: 'logout' })
+			}}>
 				Log Out
 			</button>
 		</>

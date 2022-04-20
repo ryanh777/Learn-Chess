@@ -1,6 +1,7 @@
 import { Chess } from 'chess.js'
 import { useContext, useState } from 'react'
-import { Orientation, } from '../@constants'
+import { Move, Orientation, } from '../@constants'
+import { getBlackLearnStateFirstMove, getRootMove } from '../@helpers'
 import LogicContext from '../LogicContext'
 
 enum ButtonText {
@@ -8,36 +9,38 @@ enum ButtonText {
    Create = "Create Mode"
 }
 
-interface Props {
-   getBlackLearnStateFirstMove: () => Promise<{move: string, id: string} | undefined>
-}
-
-const LearnStateButton = (props: Props) => {
+const LearnStateButton = () => {
    const [buttonText, setButtonText] = useState<string>(ButtonText.Learn)
    const { state, dispatch} = useContext(LogicContext)
-   const { boardOrientation, isLearnState} = state
+   const { user, boardOrientation, isLearnState, prevMove} = state
 
    const handleClick = async () => { 
+      const rootMove: Move = await getRootMove(boardOrientation, user)
       if (isLearnState) {
          setButtonText(ButtonText.Learn)
-      } else {
-         setButtonText(ButtonText.Create)
-         if (boardOrientation === Orientation.black) {
-            const firstMove: { move: string; id: string; } | undefined = await props.getBlackLearnStateFirstMove()
-            if (!firstMove) {return}
-            const game = Chess()
-            game.move(firstMove.move)
-            dispatch({
-               type: "mode-black-learnstate", 
-               payload: {
-                  game: game,
-                  moveID: firstMove.id
-               }
-            })
-            return
-         }
+         dispatch({type: "mode", payload: rootMove})
+         return
       }
-      dispatch({type: "mode"})
+      if (rootMove.childIDs.length === 0) {
+         alert(`need line for ${boardOrientation} before learning`)
+         return
+      }
+      setButtonText(ButtonText.Create)
+      if (boardOrientation === Orientation.black) {
+         const firstMove: Move | undefined = await getBlackLearnStateFirstMove(user)
+         if (!firstMove) {return}
+         const game = Chess()
+         game.move(firstMove.move)
+         dispatch({
+            type: "mode-black-learnstate", 
+            payload: {
+               game: game,
+               move: firstMove
+            }
+         })
+         return
+      }
+      dispatch({type: "mode", payload: rootMove})
    }
    return (
       <button onClick={handleClick}>{buttonText}</button>

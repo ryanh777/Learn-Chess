@@ -1,12 +1,5 @@
-// import { Position } from "./constants";
-
-export const initialState = {
-   username: "",
-   password: "",
-   error: "",
-   isLoading: false,
-   isLoggedIn: false,
-};
+import { Chess } from "chess.js";
+import { LogicContextStateType } from "./@types";
 
 export interface User {
    username: string;
@@ -42,7 +35,27 @@ export interface ChildData {
    moves: string[];
 }
 
-// export interface UserMove {
-//    initialPosition: Position;
-//    finalPosition: Position;
-// }
+export const loginInitialState = {
+   username: "",
+   password: "",
+   error: "",
+   isLoading: false,
+   isLoggedIn: false,
+};
+
+export const appContextInitialState: LogicContextStateType = {
+   user: {
+      username: "",
+      whiteRootID: "",
+      blackRootID: "",
+   },
+   game: Chess(),
+   boardOrientation: Orientation.white,
+   prevMove: {
+      move: "",
+      parentID: "",
+      childIDs: [],
+      childMoves: [],
+   },
+   isLearnState: false,
+};

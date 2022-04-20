@@ -1,5 +1,5 @@
-import { Chess, ChessInstance } from "chess.js";
-import { Orientation } from "../@constants";
+import { Chess } from "chess.js";
+import { appContextInitialState, Orientation } from "../@constants";
 import { LogicContextActionType, LogicContextStateType } from "../@types";
 
 const logicReducer = (
@@ -7,37 +7,34 @@ const logicReducer = (
    action: LogicContextActionType
 ) => {
    switch (action.type) {
+      case "reset-state": {
+         return appContextInitialState;
+      }
       case "drop": {
          return {
             ...state,
             game: action.payload,
          };
       }
-      case "game": {
+      case "update-game": {
          return {
             ...state,
             game: action.payload.game,
-            currentMoveID: action.payload.moveID,
+            prevMove: action.payload.move,
          };
       }
       case "reset-board": {
          return {
             ...state,
             game: Chess(),
-            currentMoveID:
-               state.boardOrientation === Orientation.white
-                  ? state.user.whiteRootID
-                  : state.user.blackRootID,
+            prevMove: action.payload,
          };
       }
       case "flip": {
          return {
             ...state,
             game: Chess(),
-            currentMoveID:
-               state.boardOrientation === Orientation.white
-                  ? state.user.blackRootID
-                  : state.user.whiteRootID,
+            prevMove: action.payload,
             boardOrientation:
                state.boardOrientation === Orientation.white
                   ? Orientation.black
@@ -52,17 +49,14 @@ const logicReducer = (
                state.boardOrientation === Orientation.white
                   ? Orientation.black
                   : Orientation.white,
-            currentMoveID: action.payload.moveID,
+            prevMove: action.payload.move,
          };
       }
       case "mode": {
          return {
             ...state,
             game: Chess(),
-            currentMoveID:
-               state.boardOrientation === Orientation.white
-                  ? state.user.blackRootID
-                  : state.user.whiteRootID,
+            prevMove: action.payload,
             isLearnState: !state.isLearnState,
          };
       }
@@ -70,7 +64,7 @@ const logicReducer = (
          return {
             ...state,
             game: action.payload.game,
-            currentMoveID: action.payload.moveID,
+            prevMove: action.payload.move,
             isLearnState: !state.isLearnState,
          };
       }
@@ -78,9 +72,10 @@ const logicReducer = (
          return {
             ...state,
             game: action.payload.game,
-            currentMoveID: action.payload.moveID,
+            prevMove: action.payload.move,
          };
       }
+      // default => THROW NEW ERROR
    }
 };
 

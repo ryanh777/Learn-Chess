@@ -1,9 +1,8 @@
-import { ChildData, } from "../../@constants"
+import { ChildData, Move, } from "../../@constants"
 import { getChildren, postMove } from "../../helperFuncs";
 import { useContext } from "react";
 import LogicContext from "../../LogicContext";
-import { safeGameMutate } from "../../@helpers";
-import { Orientation } from "../../@constants";
+import { getRootMove } from "../../@helpers";
 
 const SaveButton = (): JSX.Element => {
     const { state, dispatch } = useContext(LogicContext)
@@ -58,11 +57,8 @@ const SaveButton = (): JSX.Element => {
                 id = await createChild(id, moveList[i])
             }
         }
-        dispatch({type: "game", payload: {
-                game: safeGameMutate(game, (game) => game.reset()),
-                moveID: boardOrientation === Orientation.white ? user.whiteRootID : user.blackRootID
-            }
-        })
+        const rootMove: Move = await getRootMove(boardOrientation, user)
+        dispatch({ type: "reset-board", payload: rootMove })
     }
 
     return (

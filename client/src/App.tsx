@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { loginReducer } from './@reducers/login';
 import './App.css';
 import { Login, Register } from './components/auth';
-import { initialState, Move, } from './@constants';
+import { loginInitialState, Move, } from './@constants';
 import BoardContainer from './components/boardContainer/boardContainer';
 import UserComponent from './components/user/user';
 import CreateContainer from './components/createContainer';
@@ -11,9 +11,10 @@ import { LogicContextProvider } from './LogicContext';
 import { User } from './@constants'
 
 function App() {
-	const [state, dispatch] = useReducer(loginReducer, initialState);
+	const [state, dispatch] = useReducer(loginReducer, loginInitialState);
 	const { username, password, isLoading, error, isLoggedIn } = state;
 	const [user, setUser] = useState<User>({username: "", whiteRootID: "", blackRootID: ""})
+	const [prevMove, setPrevMove] = useState<Move>({move: "", parentID: "", childIDs: [], childMoves: []})
 
 	useEffect(() => {
 		const token = localStorage.getItem('token')
@@ -27,22 +28,33 @@ function App() {
 				})
 				if (response.ok) {
 					setUser(await response.json())
-					dispatch({ type: 'success'})
 				}
 			}
 			fetchToken()
 		}
 	}, [])
 
+	useEffect(() => {
+		if (user.username.length > 0) {
+			const fetchMove = async () => {
+				const move = await fetch(`/data/${user.whiteRootID}`)
+				.then((res) => res.json())
+				setPrevMove(move)
+			}
+			fetchMove() 
+			dispatch({ type: 'success'})
+		}
+	}, [user])
+
 	return (
 		<div className="app">
-			{isLoggedIn ? (
+			{isLoggedIn && prevMove.move.length > 0 ? (
 				<>
-					<LogicContextProvider user={user}>
+					<LogicContextProvider user={user} prevMove={prevMove}>
 						<UserComponent dispatchLogout={dispatch}/>
 						<div className='content-container'>
-								<CreateContainer/>
-								<BoardContainer/>
+							<CreateContainer/>
+							<BoardContainer/>
 						</div>
 					</LogicContextProvider>
                 </>

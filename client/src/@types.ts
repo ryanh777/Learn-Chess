@@ -1,6 +1,5 @@
 import { ChessInstance } from "chess.js";
 import { Orientation, User } from "./@constants";
-// import { Piece } from "./constants";
 import { Move } from "./@constants";
 
 export type LoginStateType = {
@@ -18,57 +17,27 @@ export type LoginActionType =
    | { type: "error" }
    | { type: "logout" };
 
-// export type ContextStateType = {
-//    pieces: Piece[];
-//    isWhite: boolean;
-//    currentMoveID: string;
-//    moveList: string[];
-//    isLearnState: boolean;
-// };
-
-// export type ContextActionType =
-//    | {
-//         type: "pieces";
-//         payload: {
-//            pieces: Piece[];
-//         };
-//      }
-//    | {
-//         type: "save-move";
-//         payload: {
-//            pieces: Piece[];
-//            move: string;
-//         };
-//      }
-//    | { type: "save-line" }
-//    | {
-//         type: "flip";
-//         payload: {
-//            currentMoveID: string;
-//         };
-//      };
-
 export type LogicContextStateType = {
    user: User;
    game: ChessInstance;
    boardOrientation: Orientation;
-   // prevMove: Move;
-   currentMoveID: string;
+   prevMove: Move;
    isLearnState: boolean;
 };
 
 export type LogicContextActionType =
+   | { type: "reset-state" }
    | { type: "drop"; payload: ChessInstance }
-   | { type: "game"; payload: { game: ChessInstance; moveID: string } }
-   | { type: "reset-board" }
-   | { type: "flip"; payload: string }
+   | { type: "update-game"; payload: { game: ChessInstance; move: Move } }
+   | { type: "reset-board"; payload: Move }
+   | { type: "flip"; payload: Move }
    | {
         type: "flip-black-learnstate";
-        payload: { game: ChessInstance; moveID: string };
+        payload: { game: ChessInstance; move: Move };
      }
-   | { type: "mode" }
+   | { type: "mode"; payload: Move }
    | {
         type: "mode-black-learnstate";
-        payload: { game: ChessInstance; moveID: string };
+        payload: { game: ChessInstance; move: Move };
      }
-   | { type: "auto-move"; payload: { game: ChessInstance; moveID: string } };
+   | { type: "auto-move"; payload: { game: ChessInstance; move: Move } };

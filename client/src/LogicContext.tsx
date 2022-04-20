@@ -1,6 +1,6 @@
 import { Chess } from "chess.js";
 import { createContext, Dispatch, ReactNode, useReducer } from "react";
-import { Orientation, User } from "./@constants";
+import { Move, Orientation, User } from "./@constants";
 import logicReducer from "./@reducers/logic";
 import { LogicContextStateType, LogicContextActionType } from "./@types";
 
@@ -12,13 +12,12 @@ const initialState: LogicContextStateType = {
     },
     game: Chess(),
     boardOrientation: Orientation.white,
-    // prevMove: {
-    //     move: "",
-    //     parentID: "",
-    //     childIDs: [],
-    //     childMoves: []
-    // },
-    currentMoveID: "",
+    prevMove: {
+        move: "",
+        parentID: "",
+        childIDs: [],
+        childMoves: []
+    },
     isLearnState: false
 }
 
@@ -33,11 +32,11 @@ const LogicContext = createContext<{
 interface Props {
     children: ReactNode;
     user: User;
-    // prevMove: string
+    prevMove: Move
 }
 
 export const LogicContextProvider = (props: Props) => {
-    const initialStateWithUser = { ...initialState, user: props.user, currentMoveID: props.user.whiteRootID}
+    const initialStateWithUser = { ...initialState, user: props.user, prevMove: props.prevMove}
     const [state, dispatch] = useReducer(logicReducer, initialStateWithUser)
 
     return (
