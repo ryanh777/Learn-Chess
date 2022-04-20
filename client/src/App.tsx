@@ -1,42 +1,51 @@
-import React, { FormEvent, useEffect, useReducer, useState } from 'react';
-import { Link, Routes, Route, BrowserRouter } from 'react-router-dom';
-import { loginReducer } from './@reducers';
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { loginReducer } from './@reducers/login';
 import './App.css';
-import Chessboard from './components/chessboard/chessboard';
 import { Login, Register } from './components/auth';
-import { initialState, User } from './@constants';
+import { initialState, Move, } from './@constants';
+import BoardContainer from './components/boardContainer/boardContainer';
+import UserComponent from './components/user/user';
+import CreateContainer from './components/createContainer';
+import { LogicContextProvider } from './LogicContext';
+import { User } from './@constants'
 
 function App() {
 	const [state, dispatch] = useReducer(loginReducer, initialState);
 	const { username, password, isLoading, error, isLoggedIn } = state;
-	const [user, setUser] = useState<User | null>()
+	const [user, setUser] = useState<User>({username: "", whiteRootID: "", blackRootID: ""})
+	// const [prevMove, setPrevMove] = useState<Move>()
 
 	useEffect(() => {
 		const token = localStorage.getItem('token')
-		console.log("token:", token)
 		if (token) {
-			fetch('/user', {
-				method: 'GET',
-				headers: {
-					'auth-token': `${token}`
+			const fetchToken = async () => {
+				const response = await fetch('/user', {
+					method: 'GET',
+					headers: {
+						'auth-token': `${token}`
+					}
+				})
+				if (response.ok) {
+					setUser(await response.json())
+					dispatch({ type: 'success'})
 				}
-			})
-			.then(res => res.json())
-			.then(user => setUser(user))
-			dispatch({ type: 'success'})
+			}
+			fetchToken()
 		}
 	}, [])
 
 	return (
 		<div className="app">
 			{isLoggedIn ? (
-                <>
-                    <h1>Welcome {user?.username}!</h1>
-					<h3>white: {user?.whiteRootID}</h3>
-					<h3>black: {user?.blackRootID}</h3>
-                    <button onClick={() => dispatch({ type: 'logout' })}>
-                        Log Out
-                    </button>
+				<>
+					<LogicContextProvider user={user}>
+						<UserComponent dispatchLogout={dispatch}/>
+						<div className='content-container'>
+								<CreateContainer/>
+								<BoardContainer/>
+						</div>
+					</LogicContextProvider>
                 </>
             ) : (
 				<Routes>

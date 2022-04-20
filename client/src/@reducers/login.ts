@@ -1,6 +1,9 @@
-import { LoginAction, LoginState } from "./@constants";
+import { LoginActionType, LoginStateType } from "../@types";
 
-export function loginReducer(state: LoginState, action: LoginAction) {
+export const loginReducer = (
+  state: LoginStateType,
+  action: LoginActionType
+) => {
   switch (action.type) {
     case "field": {
       return {
@@ -43,4 +46,4 @@ export function loginReducer(state: LoginState, action: LoginAction) {
     default:
       return state;
   }
-}
+};

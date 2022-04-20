@@ -1,28 +1,43 @@
+import { Position } from "./constants";
+
 export const initialState = {
-  username: "",
-  password: "",
-  error: "",
-  isLoading: false,
-  isLoggedIn: false,
+   username: "",
+   password: "",
+   error: "",
+   isLoading: false,
+   isLoggedIn: false,
 };
 
 export interface User {
-  username: string;
-  whiteRootID: string;
-  blackRootID: string;
+   username: string;
+   whiteRootID: string;
+   blackRootID: string;
 }
 
-export type LoginState = {
-  username: string;
-  password: string;
-  error: string;
-  isLoading: boolean;
-  isLoggedIn: boolean;
-};
+export interface Move {
+   move: string;
+   parentID: string;
+   childIDs: string[] | [];
+   childMoves: string[] | [];
+}
 
-export type LoginAction =
-  | { type: "field"; fieldName: string; payload: string }
-  | { type: "login" }
-  | { type: "success" }
-  | { type: "error" }
-  | { type: "logout" };
+export enum AppState {
+   Learn,
+   Create,
+}
+
+export enum Orientation {
+   white = "white",
+   black = "black",
+}
+
+export interface MovePieceReturnData {
+   valid: boolean;
+   appState: AppState;
+   data: {};
+}
+
+export interface UserMove {
+   initialPosition: Position;
+   finalPosition: Position;
+}

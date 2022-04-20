@@ -5,3 +5,8 @@
   background-color: #202020;
   color: white;
 }
+
+.content-container {
+  display: flex;
+  flex-direction: row;
+}

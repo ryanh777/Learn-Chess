@@ -3,17 +3,15 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import { ContextProvider } from "./AppContext"
+import { LogicContextProvider } from "./LogicContext"
 import { BrowserRouter } from 'react-router-dom';
 
 ReactDOM.render(
-	<ContextProvider>
 		<React.StrictMode>
 			<BrowserRouter>
 				<App />
 			</BrowserRouter>
 		</React.StrictMode>,
-	</ContextProvider>,
   	document.getElementById('root')
 );
 

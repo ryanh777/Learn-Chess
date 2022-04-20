@@ -1,15 +1,16 @@
-import React, { FC, FormEvent } from "react";
-import { LoginAction, User } from "../@constants";
-import { Route, useNavigate } from "react-router-dom"
+import React, { FormEvent } from "react";
+import { User } from "../@constants";
+import { useNavigate } from "react-router-dom"
 import { postMove } from "../helperFuncs";
+import { LoginActionType } from "../@types";
 
 interface Props {
     username: string,
     password: string,
     error: string,
     isLoading: boolean,
-    dispatch: React.Dispatch<LoginAction>
-    setUser: React.Dispatch<React.SetStateAction<User | null | undefined>>
+    dispatch: React.Dispatch<LoginActionType>
+    setUser: React.Dispatch<React.SetStateAction<User>>
 }
 
 export const Login = (props: Props): JSX.Element => {
