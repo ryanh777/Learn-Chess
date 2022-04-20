@@ -14,7 +14,6 @@ function App() {
 	const [state, dispatch] = useReducer(loginReducer, initialState);
 	const { username, password, isLoading, error, isLoggedIn } = state;
 	const [user, setUser] = useState<User>({username: "", whiteRootID: "", blackRootID: ""})
-	// const [prevMove, setPrevMove] = useState<Move>()
 
 	useEffect(() => {
 		const token = localStorage.getItem('token')

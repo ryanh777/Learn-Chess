@@ -1,6 +1,6 @@
 import { ChessInstance } from "chess.js";
 import { Orientation, User } from "./@constants";
-import { Piece } from "./constants";
+// import { Piece } from "./constants";
 import { Move } from "./@constants";
 
 export type LoginStateType = {
@@ -18,35 +18,35 @@ export type LoginActionType =
    | { type: "error" }
    | { type: "logout" };
 
-export type ContextStateType = {
-   pieces: Piece[];
-   isWhite: boolean;
-   currentMoveID: string;
-   moveList: string[];
-   isLearnState: boolean;
-};
+// export type ContextStateType = {
+//    pieces: Piece[];
+//    isWhite: boolean;
+//    currentMoveID: string;
+//    moveList: string[];
+//    isLearnState: boolean;
+// };
 
-export type ContextActionType =
-   | {
-        type: "pieces";
-        payload: {
-           pieces: Piece[];
-        };
-     }
-   | {
-        type: "save-move";
-        payload: {
-           pieces: Piece[];
-           move: string;
-        };
-     }
-   | { type: "save-line" }
-   | {
-        type: "flip";
-        payload: {
-           currentMoveID: string;
-        };
-     };
+// export type ContextActionType =
+//    | {
+//         type: "pieces";
+//         payload: {
+//            pieces: Piece[];
+//         };
+//      }
+//    | {
+//         type: "save-move";
+//         payload: {
+//            pieces: Piece[];
+//            move: string;
+//         };
+//      }
+//    | { type: "save-line" }
+//    | {
+//         type: "flip";
+//         payload: {
+//            currentMoveID: string;
+//         };
+//      };
 
 export type LogicContextStateType = {
    user: User;

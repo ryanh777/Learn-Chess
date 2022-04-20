@@ -1,18 +1,14 @@
 import './boardContainer.css'
-import { useCallback, useContext, useEffect, useReducer, useRef, useState } from 'react'
-import { ChildData, Piece, Position, samePosition, User, whiteBoardState } from '../../constants'
+import { useContext, useEffect, useRef } from 'react'
+// import { ChildData, } from '../../constants'
 import Chessboard3 from '../chessboard/chessboard3'
 import FlipColorButton from '../flipColorButton'
 import LearnStateButton from '../learnStateButton'
 import SaveButton from '../save/save2'
 import { getChildren } from '../../helperFuncs'
 import LogicContext from '../../LogicContext'
-import { Orientation } from '../../@constants'
+import { ChildData, Orientation } from '../../@constants'
 import { safeGameMutate } from '../../@helpers'
-
-// interface Props {
-//     user: User
-// }
 
 const BoardContainer = () => {
    const { state, dispatch } = useContext(LogicContext)
@@ -60,8 +56,6 @@ const BoardContainer = () => {
    const pickRandomChildAndMove = (moveNode: ChildData): number => {
       const randIndex = Math.floor(Math.random() * moveNode.ids.length)
 		const randomOppMove: string = moveNode.moves[randIndex]
-      // safeGameMutate((game) => game.move(randomOppMove))
-      // currentMoveID.current = moveNode.ids[randIndex]
       dispatch({type: "auto-move", payload: {
             game: safeGameMutate(game, (game) => { 
                // if (reset) {game.reset()}
@@ -74,43 +68,16 @@ const BoardContainer = () => {
    }
 
    const getBlackLearnStateFirstMove = async (): Promise<{move: string, id: string} | undefined> => {
-      // if (boardOrientation === "white") {
-      //    currentMoveID.current = props.user.whiteRootID
-      //    safeGameMutate((game) => game.reset())
-      //    return
-      // }
       const moveNode: ChildData = await getChildren(user.blackRootID)
       if (moveNode.ids.length === 0) { 
          alert("need saved black lines before learning")
          return
       }
-
       return pickRandomNextMove(moveNode)
-      // const randIndex = Math.floor(Math.random() * moveNode.ids.length)
-      // const randomOppMove: string = moveNode.moves[randIndex]
-      // // safeGameMutate((game) => {
-      // //    game.reset()
-      // //    game.move(randomOppMove)
-      // // })
-      // // currentMoveID.current = moveNode.ids[randIndex]
-      // dispatch({type: "auto-move", payload: {
-      //    game: safeGameMutate(game, (game) => { 
-      //       // game.reset()
-      //       game.move(randomOppMove)
-      //    }), 
-      //    moveID: moveNode.ids[randIndex]
-      //    }
-      // })
-
-
-      // pickRandomChildAndMove(moveNode, true)
    }
 
    const endOfLine = async (message: string) => {
 		alert(message)
-      // const currID = boardOrientation === "white" ? props.user.whiteRootID : props.user.blackRootID
-      // currentMoveID.current = currID
-      // safeGameMutate((game) => game.reset())
       if (boardOrientation === Orientation.black) {
          const firstMove = await getBlackLearnStateFirstMove()
          if (firstMove) {
@@ -136,8 +103,6 @@ const BoardContainer = () => {
    useEffect(() => {
       gameHasChanged()
    }, [game.fen()])
-
-   // UpdateAfterRenderEffect(gameHasChanged, onDrop)
 
    return (
       <div className='board-container'>

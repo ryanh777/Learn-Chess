@@ -1,4 +1,4 @@
-import { Position } from "./constants";
+// import { Position } from "./constants";
 
 export const initialState = {
    username: "",
@@ -37,7 +37,12 @@ export interface MovePieceReturnData {
    data: {};
 }
 
-export interface UserMove {
-   initialPosition: Position;
-   finalPosition: Position;
+export interface ChildData {
+   ids: string[];
+   moves: string[];
 }
+
+// export interface UserMove {
+//    initialPosition: Position;
+//    finalPosition: Position;
+// }

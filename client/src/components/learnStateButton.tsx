@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js'
-import React, { Dispatch, MutableRefObject, SetStateAction, useContext, useState } from 'react'
-import { Orientation, User } from '../@constants'
+import { useContext, useState } from 'react'
+import { Orientation, } from '../@constants'
 import LogicContext from '../LogicContext'
 
 enum ButtonText {
@@ -9,24 +9,17 @@ enum ButtonText {
 }
 
 interface Props {
-   // user: User
-   // isLearnState: boolean,
-   // boardOrientation: Orientation,
-   // currentMoveID: MutableRefObject<string>,
-   // setIsLearnState: Dispatch<SetStateAction<boolean>>,
-   // safeGameMutate: (modify: (game: ChessInstance) => void) => void
    getBlackLearnStateFirstMove: () => Promise<{move: string, id: string} | undefined>
 }
 
 const LearnStateButton = (props: Props) => {
    const [buttonText, setButtonText] = useState<string>(ButtonText.Learn)
    const { state, dispatch} = useContext(LogicContext)
-   const { user, boardOrientation, isLearnState} = state
+   const { boardOrientation, isLearnState} = state
 
    const handleClick = async () => { 
       if (isLearnState) {
          setButtonText(ButtonText.Learn)
-         // safeGameMutate((game) => game.reset())
       } else {
          setButtonText(ButtonText.Create)
          if (boardOrientation === Orientation.black) {
@@ -44,17 +37,10 @@ const LearnStateButton = (props: Props) => {
             return
          }
       }
-      // props.setIsLearnState(isLearnState => !isLearnState)
-      // props.boardOrientation === "white" ? 
-      //    props.currentMoveID.current = props.user.whiteRootID : 
-      //    props.currentMoveID.current = props.user.blackRootID
-
       dispatch({type: "mode"})
    }
-
    return (
       <button onClick={handleClick}>{buttonText}</button>
    )
 }
-
 export default LearnStateButton

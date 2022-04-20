@@ -1,17 +1,9 @@
-import { ChildData, User } from "../../constants"
+import { ChildData, } from "../../@constants"
 import { getChildren, postMove } from "../../helperFuncs";
 import { useContext } from "react";
 import LogicContext from "../../LogicContext";
 import { safeGameMutate } from "../../@helpers";
-import { userInfo } from "os";
 import { Orientation } from "../../@constants";
-
-// interface Props {
-//     user: User,
-//     // game: ChessInstance,
-//     // boardOrientation: "white" | "black",
-//     // safeGameMutate: (modify: (game: ChessInstance) => void) => void,
-// }
 
 const SaveButton = (): JSX.Element => {
     const { state, dispatch } = useContext(LogicContext)

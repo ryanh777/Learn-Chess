@@ -2,8 +2,7 @@ import { Chess } from "chess.js";
 import { createContext, Dispatch, ReactNode, useReducer } from "react";
 import { Orientation, User } from "./@constants";
 import logicReducer from "./@reducers/logic";
-import { ContextStateType, ContextActionType, LogicContextStateType, LogicContextActionType } from "./@types";
-import { whiteBoardState } from "./constants"; 
+import { LogicContextStateType, LogicContextActionType } from "./@types";
 
 const initialState: LogicContextStateType = {
     user: {
