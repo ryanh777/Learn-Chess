@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import { LoginActionType } from "../../@types";
-import LogicContext from "../../LogicContext";
+import { LoginActionType } from "../@types";
+import LogicContext from "../LogicContext";
 
 interface Props {
 	dispatchLogout: React.Dispatch<LoginActionType>
@@ -11,7 +11,7 @@ const User = (props: Props): JSX.Element => {
 	const { user } = state
 	return (
 		<>
-			<h1>{user.username}</h1>
+			<h1 className="text-red-500">{user.username}</h1>
 			<button onClick={() => {
 				localStorage.removeItem('token')
 				dispatch({type: "reset-state"})

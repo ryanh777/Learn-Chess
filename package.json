@@ -21,6 +21,9 @@
     "express": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.2.3",
+    "react-icons": "^4.3.1",
+    "react-scripts": "5.0.1",
+    "use-resize-observer": "^8.0.0",
     "util": "^0.12.4"
   },
   "devDependencies": {

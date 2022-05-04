@@ -57,8 +57,9 @@ export const Login = (props: Props): JSX.Element => {
             <form onSubmit={onSubmit}>
                 {props.error && <p className='error'>{props.error}</p>}
                 <h2>Login</h2>
-                <div className="form-element">
+                <div className="my-2 form-element">
                     <input 
+                        className="text-black"
                         type="text" 
                         placeholder="username" 
                         id="username" 
@@ -75,6 +76,7 @@ export const Login = (props: Props): JSX.Element => {
                 </div>
                 <div className="form-element">
                     <input 
+                        className="text-black"
                         type="text" 
                         placeholder="password" 
                         id="password" 
@@ -89,9 +91,9 @@ export const Login = (props: Props): JSX.Element => {
                         }
                     />
                 </div>
-                <input type="submit" value="Login" disabled={props.isLoading}/>
+                <input className='my-2 cursor-pointer bg-button' type="submit" value="Login" disabled={props.isLoading}/>
             </form>
-            <button onClick={() => navigate("/register")}>Register</button>
+            <button className='cursor-pointer bg-button' onClick={() => navigate("/register")}>Register</button>
         </>
     )
 }
@@ -102,11 +104,13 @@ export const Register = (props: Props): JSX.Element => {
 		props.dispatch({ type: 'login' });
 		const whiteRoot = {
             move: `${props.username}-white-root`,
-            parentID: "none"
+            parentID: "root",
+            piece: "root"
         }
         const blackRoot = {
             move: `${props.username}-black-root`,
-            parentID: "none"
+            parentID: "root",
+            piece: "root"
         }
         const user = {
             username: props.username,
@@ -143,7 +147,7 @@ export const Register = (props: Props): JSX.Element => {
             <form onSubmit={onSubmit}>
                 {props.error && <p className='error'>{props.error}</p>}
                 <h2>Register</h2>
-                <div className="form-element">
+                <div className="my-2 form-element">
                     <input 
                         type="text" 
                         placeholder="username" 
@@ -175,9 +179,53 @@ export const Register = (props: Props): JSX.Element => {
                         }
                     />
                 </div>
-                <input type="submit" value="Register" disabled={props.isLoading}/>
+                <input className='my-2 cursor-pointer bg-button' type="submit" value="Register" disabled={props.isLoading}/>
             </form>
             {/* <button onClick={() => navigate("/register")}>Register</button> */}
         </>
     )
 }
+
+// interface formProps {
+//     type: AuthType
+// }
+
+// const forms = (props: formProps) => (
+//     <form onSubmit={onSubmit}>
+//         {props.error && <p className='error'>{props.error}</p>}
+//         <h2>Register</h2>
+//         <div className="form-element">
+//             <input 
+//                 type="text" 
+//                 placeholder="username" 
+//                 id="username" 
+//                 value={props.username} 
+//                 autoComplete="off"
+//                 onChange={(e) => 
+//                     props.dispatch({
+//                         type: 'field',
+//                         fieldName: 'username',
+//                         payload: e.currentTarget.value
+//                     })
+//                 }
+//             />
+//         </div>
+//         <div className="form-element">
+//             <input 
+//                 type="text" 
+//                 placeholder="password" 
+//                 id="password" 
+//                 value={props.password} 
+//                 autoComplete="off"
+//                 onChange={(e) => 
+//                     props.dispatch({
+//                         type: 'field',
+//                         fieldName: 'password',
+//                         payload: e.currentTarget.value
+//                     })
+//                 }
+//             />
+//         </div>
+//         <input type="submit" value="Register" disabled={props.isLoading}/>
+//     </form>
+// )

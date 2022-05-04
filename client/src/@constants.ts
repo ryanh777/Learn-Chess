@@ -7,16 +7,27 @@ export interface User {
    blackRootID: string;
 }
 
-export interface Move {
+export interface Move2 {
    move: string;
    parentID: string;
    childIDs: string[] | [];
    childMoves: string[] | [];
 }
 
+export interface Move {
+   move: string;
+   parentID: string;
+   piece: string;
+   childData: {
+      id: string;
+      move: string;
+      piece: string;
+   }[];
+}
+
 export enum AppState {
-   Learn,
-   Create,
+   Learn = "learn",
+   Create = "create",
 }
 
 export enum Orientation {
@@ -24,15 +35,26 @@ export enum Orientation {
    black = "black",
 }
 
-export interface MovePieceReturnData {
-   valid: boolean;
-   appState: AppState;
-   data: {};
-}
+// export enum AuthType {
+//    Login = "Login",
+//    Register = "Register",
+// }
+
+// export interface MovePieceReturnData {
+//    valid: boolean;
+//    appState: AppState;
+//    data: {};
+// }
+
+// export interface ChildData {
+//    ids: string[];
+//    moves: string[];
+// }
 
 export interface ChildData {
-   ids: string[];
-   moves: string[];
+   id: string;
+   move: string;
+   piece: string;
 }
 
 export const loginInitialState = {
@@ -54,8 +76,8 @@ export const appContextInitialState: LogicContextStateType = {
    prevMove: {
       move: "",
       parentID: "",
-      childIDs: [],
-      childMoves: [],
+      piece: "",
+      childData: [],
    },
    isLearnState: false,
 };

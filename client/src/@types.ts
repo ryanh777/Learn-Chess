@@ -29,6 +29,7 @@ export type LogicContextActionType =
    | { type: "reset-state" }
    | { type: "drop"; payload: ChessInstance }
    | { type: "update-game"; payload: { game: ChessInstance; move: Move } }
+   | { type: "update-prevMove"; payload: Move }
    | { type: "reset-board"; payload: Move }
    | { type: "flip"; payload: Move }
    | {

@@ -23,6 +23,12 @@ const logicReducer = (
             prevMove: action.payload.move,
          };
       }
+      case "update-prevMove": {
+         return {
+            ...state,
+            prevMove: action.payload,
+         };
+      }
       case "reset-board": {
          return {
             ...state,

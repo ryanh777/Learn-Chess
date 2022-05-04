@@ -3,6 +3,7 @@ import { Chess } from 'chess.js'
 import { Move, Orientation } from '../@constants'
 import LogicContext from '../LogicContext'
 import { getBlackLearnStateFirstMove, getRootMove } from '../@helpers'
+import { FiRepeat } from 'react-icons/fi'
 
 // interface Props {
 //    getBlackLearnStateFirstMove: () => Promise<{move: string, id: string} | undefined>
@@ -14,27 +15,36 @@ const FlipColorButton = (): JSX.Element => {
 
   	return (
       <>
-         <button onClick={
-            async () => {
-               if (isLearnState && boardOrientation === Orientation.white) {
-                  const firstMove: Move | undefined = await getBlackLearnStateFirstMove(user)
-                  if (firstMove) {
-                     const game = Chess()
-                     game.move(firstMove.move)
-                     dispatch({
-                        type: "flip-black-learnstate", 
-                        payload: {
-                           game: game,
-                           move: firstMove
-                        }
-                     })
+         <button
+            className='flex items-center justify-center flex-grow mr-1 text-lg bg-button rounded-xl hover:bg-buttonHover' 
+            onClick={
+               async () => {
+                  if (isLearnState && boardOrientation === Orientation.white) {
+                     const firstMove: Move | undefined = await getBlackLearnStateFirstMove(user)
+                     if (firstMove) {
+                        const game = Chess()
+                        game.move(firstMove.move)
+                        dispatch({
+                           type: "flip-black-learnstate", 
+                           payload: {
+                              game: game,
+                              move: firstMove
+                           }
+                        })
+                     }
+                     return
+                  } 
+                  
+                  if (boardOrientation === Orientation.white) {
+                     dispatch({type: "flip", payload: await getRootMove(Orientation.black, user)})
+                     return
                   }
-                  return
-               } 
-               const rootMove: Move = await getRootMove(boardOrientation, user)
-               dispatch({type: "flip", payload: rootMove})
+                  dispatch({type: "flip", payload: await getRootMove(Orientation.white, user)})
+               }
             }
-         }>Flip</button>
+         >
+            {<FiRepeat size={32} />}
+         </button>
       </>
   	)
 }

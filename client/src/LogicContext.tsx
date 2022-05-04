@@ -15,8 +15,8 @@ const initialState: LogicContextStateType = {
     prevMove: {
         move: "",
         parentID: "",
-        childIDs: [],
-        childMoves: []
+        piece: "",
+        childData: []
     },
     isLearnState: false
 }
