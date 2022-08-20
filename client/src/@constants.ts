@@ -60,6 +60,7 @@ export interface ChildData {
 export const loginInitialState = {
    username: "",
    password: "",
+   confirmpassword: "",
    error: "",
    isLoading: false,
    isLoggedIn: false,

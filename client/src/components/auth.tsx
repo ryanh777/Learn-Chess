@@ -48,7 +48,7 @@ export const Login = (props: Props): JSX.Element => {
 			props.dispatch({ type: 'success'})
 		} catch (err: any) {
 			console.log(err)
-			props.dispatch({ type: 'error' })
+			// props.dispatch({ type: 'error' })
 		}
 	};
 
@@ -138,7 +138,7 @@ export const Register = (props: Props): JSX.Element => {
 			props.dispatch({ type: 'success'})
 		} catch (err: any) {
 			console.log(err)
-			props.dispatch({ type: 'error' })
+			// props.dispatch({ type: 'error' })
 		}
 	};
 

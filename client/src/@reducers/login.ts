@@ -28,11 +28,11 @@ export const loginReducer = (
     case "error": {
       return {
         ...state,
-        error: "Incorrect username or password!",
+        error: action.payload,
         isLoggedIn: false,
         isLoading: false,
-        username: "",
-        password: "",
+        // username: "",
+        // password: "",
       };
     }
     case "logout": {

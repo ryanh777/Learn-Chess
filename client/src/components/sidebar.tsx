@@ -3,12 +3,19 @@ import { IoBook, IoBrush } from 'react-icons/io5'
 import { IoMdCreate } from 'react-icons/io'
 import { AppState } from '../@constants'
 import AppStateButton from './appStateButton'
+import { LoginActionType } from '../@types'
+import User from './user'
 
-const Sidebar = () => {
+interface Props {
+  dispatchLogout: React.Dispatch<LoginActionType>
+}
+
+const Sidebar = (props: Props) => {
   return (
     <div className='flex-shrink-0 w-20 h-screen bg-bgtertiary flex-end'>
         <AppStateButton state={AppState.Create} icon={<IoMdCreate size={34} />}/>
         <AppStateButton state={AppState.Learn} icon={<IoBook size={34} />}/>
+        <User dispatchLogout={props.dispatchLogout}/>
         {/* <SideBarIcon children={<IoBook size={34} />} /> */}
         {/* <SideBarIcon children={<IoBook size={34} />} /> */}
     </div>

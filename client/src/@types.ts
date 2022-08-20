@@ -5,6 +5,7 @@ import { Move } from "./@constants";
 export type LoginStateType = {
    username: string;
    password: string;
+   confirmpassword: string;
    error: string;
    isLoading: boolean;
    isLoggedIn: boolean;
@@ -14,7 +15,7 @@ export type LoginActionType =
    | { type: "field"; fieldName: string; payload: string }
    | { type: "login" }
    | { type: "success" }
-   | { type: "error" }
+   | { type: "error"; payload: string }
    | { type: "logout" };
 
 export type LogicContextStateType = {
