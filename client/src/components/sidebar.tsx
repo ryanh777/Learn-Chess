@@ -12,7 +12,7 @@ interface Props {
 
 const Sidebar = (props: Props) => {
   return (
-    <div className='flex-shrink-0 w-20 h-screen bg-bgtertiary flex-end'>
+    <div className='flex flex-col w-20 h-screen bg-bgtertiary'>
         <AppStateButton state={AppState.Create} icon={<IoMdCreate size={34} />}/>
         <AppStateButton state={AppState.Learn} icon={<IoBook size={34} />}/>
         <User dispatchLogout={props.dispatchLogout}/>

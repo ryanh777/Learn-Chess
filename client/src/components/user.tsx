@@ -11,7 +11,7 @@ const User = (props: Props): JSX.Element => {
 	const { user } = state
 	return (
 		<>
-			<h1 className="text-red-500">{user.username}</h1>
+			<h1 className="mt-auto text-red-500">{user.username}</h1>
 			<button onClick={() => {
 				localStorage.removeItem('token')
 				dispatch({type: "reset-state"})
